@@ -34,8 +34,12 @@ commandHandler.registerCommand('about',
 );
 
 commandHandler.registerCommand('info',
-    async (senderId) => {
-        return commandHandler.getInfoMessage();
+    async (senderId, args) => {
+        const infoCommand = commands.info;
+        if (infoCommand && infoCommand.execute) {
+            return infoCommand.execute(args, { senderId });
+        }
+        return '❌ Info command not available.';
     },
     COMMAND_CATEGORIES.GENERAL
 );
