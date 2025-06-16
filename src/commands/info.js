@@ -10,23 +10,23 @@ class InfoCommand {
         const infoText = `ꜱᴀʀᴛʜᴀᴋ'ꜱ ʙᴏᴛ - Command List
 
 🎯 General Commands:
-• !ᴄᴏᴍᴍᴀɴᴅhelp
-• !ᴄᴏᴍᴍᴀɴᴅabout
-• !ᴄᴏᴍᴍᴀɴᴅstats
-• !ᴄᴏᴍᴍᴀɴᴅinfo
+• !help
+• !about
+• !stats
+• !info
 
 🎮 Game Commands:
-• !ᴄᴏᴍᴍᴀɴᴅtictactoe
+• !tictactoe
 
 🛠️ Utility Commands:
-• !ᴄᴏᴍᴍᴀɴᴅdownload
+• !download
 
 👑 Admin Commands:
-• !ᴄᴏᴍᴍᴀɴᴅbroadcast 👑 ᴀᴅᴍɪɴ
-• !ᴄᴏᴍᴍᴀɴᴅaddgroup 👑 ᴀᴅᴍɪɴ
-• !ᴄᴏᴍᴍᴀɴᴅremovegroup 👑 ᴀᴅᴍɪɴ
-• !ᴄᴏᴍᴍᴀɴᴅlistgroups 👑 ᴀᴅᴍɪɴ
-• !ᴄᴏᴍᴍᴀɴᴅstats 👑 ᴀᴅᴍɪɴ
+• !broadcast 👑 ᴀᴅᴍɪɴ
+• !addgroup 👑 ᴀᴅᴍɪɴ
+• !removegroup 👑 ᴀᴅᴍɪɴ
+• !listgroups 👑 ᴀᴅᴍɪɴ
+• !stats 👑 ᴀᴅᴍɪɴ
 
 ꜱᴀʀᴛʜᴀᴋ'ꜱ ʙᴏᴛ v1.0.0
 Created by Sarthak`;
