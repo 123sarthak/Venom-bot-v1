@@ -109,28 +109,19 @@ async function initializeBot() {
                 console.log(`🔍 Command detected: ${command}`);
                 console.log(`📝 Arguments: ${args.join(', ')}`);
 
-                // Check if user is admin for admin commands
-                const isAdmin = adminIds.includes(senderID.toString());
-                if (command === 'broadcast' && !isAdmin) {
-                    await facebookApi.sendMessage(threadID, formatText('❌ You do not have permission to use this command.'));
-                    return;
-                }
-
-                // Handle command
-                const response = await handleCommand(command, args, {
-                    threadID,
-                    senderID,
-                    isAdmin,
-                    isGroupChat: facebookApi.isGroupChat(threadID)
-                });
-
+                // Handle command using commandHandler
+                const response = await commandHandler.handleCommand(senderID, command, args);
+                
                 if (response) {
                     await facebookApi.sendMessage(threadID, response);
+                } else {
+                    // If no response, send help message
+                    await facebookApi.sendMessage(threadID, commandHandler.getHelpMessage());
                 }
             } catch (error) {
                 console.error('❌ Error handling message:', error);
                 try {
-                    await facebookApi.sendMessage(message.threadID, formatText('❌ An error occurred while processing your command. Please try again later.'));
+                    await facebookApi.sendMessage(message.threadID, '❌ An error occurred while processing your command. Please try again later.');
                 } catch (sendError) {
                     console.error('❌ Error sending error message:', sendError);
                 }

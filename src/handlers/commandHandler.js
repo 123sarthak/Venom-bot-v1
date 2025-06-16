@@ -1,6 +1,7 @@
 const { BOT_INFO, COMMAND_CATEGORIES, TEXT_STYLES, ADMIN_IDS } = require('../config/botConfig');
 const infoCommands = require('../commands/info');
 const adminCommands = require('../commands/admin');
+const { formatText } = require('../utils/textFormatter');
 
 // Combine all commands
 const commands = {
@@ -13,11 +14,24 @@ class CommandHandler {
         this.commands = new Map();
         this.categories = new Map();
         this.initializeCategories();
+        this.registerDefaultCommands();
     }
 
     initializeCategories() {
         Object.values(COMMAND_CATEGORIES).forEach(category => {
             this.categories.set(category, new Map());
+        });
+    }
+
+    registerDefaultCommands() {
+        // Register info commands
+        Object.entries(infoCommands).forEach(([command, info]) => {
+            this.registerCommand(command, info.execute, COMMAND_CATEGORIES.GENERAL);
+        });
+
+        // Register admin commands
+        Object.entries(adminCommands).forEach(([command, info]) => {
+            this.registerCommand(command, info.execute, COMMAND_CATEGORIES.ADMIN, true);
         });
     }
 
@@ -30,40 +44,46 @@ class CommandHandler {
     }
 
     async handleCommand(senderId, command, args) {
+        // If no command provided, return help message
+        if (!command) {
+            return this.getHelpMessage();
+        }
+
         const commandInfo = this.commands.get(command);
         
         if (!commandInfo) {
-            return `Unknown command. Use ${TEXT_STYLES.COMMAND}help to see available commands.`;
+            return formatText(`❌ Unknown command "${command}". Use ${TEXT_STYLES.COMMAND}help to see available commands.`);
         }
 
-        if (commandInfo.isAdmin && !ADMIN_IDS.includes(senderId)) {
-            return "⛔ You don't have permission to use this command.";
+        if (commandInfo.isAdmin && !ADMIN_IDS.includes(senderId.toString())) {
+            return formatText("⛔ You don't have permission to use this command.");
         }
 
         try {
-            return await commandInfo.handler(senderId, args);
+            const response = await commandInfo.handler(args, { senderId });
+            return response ? formatText(response) : null;
         } catch (error) {
             console.error(`Error executing command ${command}:`, error);
-            return "❌ An error occurred while executing the command.";
+            return formatText("❌ An error occurred while executing the command.");
         }
     }
 
     getHelpMessage() {
-        let helpMessage = `${TEXT_STYLES.BOT_NAME} - Command List\n\n`;
+        let helpMessage = formatText(`${TEXT_STYLES.BOT_NAME} - Command List\n\n`);
         
         for (const [category, commands] of this.categories) {
             if (commands.size > 0) {
-                helpMessage += `${category}:\n`;
+                helpMessage += formatText(`${category}:\n`);
                 for (const [cmd, info] of commands) {
                     const adminBadge = info.isAdmin ? ` ${TEXT_STYLES.ADMIN}` : '';
-                    helpMessage += `• ${TEXT_STYLES.COMMAND}${cmd}${adminBadge}\n`;
+                    helpMessage += formatText(`• ${TEXT_STYLES.COMMAND}${cmd}${adminBadge}\n`);
                 }
                 helpMessage += '\n';
             }
         }
 
-        helpMessage += `\n${TEXT_STYLES.BOT_NAME} v${BOT_INFO.version}\n`;
-        helpMessage += `Created by ${BOT_INFO.creator}`;
+        helpMessage += formatText(`\n${TEXT_STYLES.BOT_NAME} v${BOT_INFO.version}\n`);
+        helpMessage += formatText(`Created by ${BOT_INFO.creator}`);
         
         return helpMessage;
     }
@@ -84,7 +104,7 @@ class CommandHandler {
     ╚═════╝  ╚═════╝    ╚═╝   
     `;
 
-        return `${asciiArt}
+        return formatText(`${asciiArt}
 ╔════════════════════════════════════════════════════════════╗
 ║                    ${TEXT_STYLES.BOT_NAME}                    ║
 ╚════════════════════════════════════════════════════════════╝
@@ -114,10 +134,7 @@ ${BOT_INFO.features.map(feature => `• ${feature}`).join('\n')}
 ║ • ${TEXT_STYLES.COMMAND}download - Download videos           ║
 ╚════════════════════════════════════════════════════════════╝
 
-💫 𝗘𝗻𝗷𝗼𝘆 𝘂𝘀𝗶𝗻𝗴 𝘁𝗵𝗲 𝗯𝗼𝘁! 💫
-
-    [${TEXT_STYLES.BOT_NAME} - Version ${BOT_INFO.version}]
-    `;
+💫 𝗘𝗻𝗷𝗼𝘆 𝘂𝘀𝗶𝗻𝗴 𝘁𝗵𝗲 𝗯��𝘁! 💫`);
     }
 }
 
