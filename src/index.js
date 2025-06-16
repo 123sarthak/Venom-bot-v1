@@ -16,7 +16,7 @@ const infoCommand = new InfoCommand();
 
 // Command handler
 async function handleCommand(message) {
-    const { threadID, senderID, body } = message;
+    const { threadID, senderID, body, mentions } = message;
     const isAdmin = ADMIN_IDS.includes(senderID);
 
     // Check if message starts with prefix
@@ -31,9 +31,16 @@ async function handleCommand(message) {
         // Handle commands
         switch (cmd.toLowerCase()) {
             case 'tictactoe':
+                // Check if there's a mention
+                const mentionedIds = Object.keys(mentions || {});
                 if (args.length === 0) {
+                    // Start a single-player game
                     response = tictactoe.startGame(senderID);
+                } else if (mentionedIds.length > 0) {
+                    // Start a two-player game with the mentioned user
+                    response = tictactoe.startGame(senderID, mentionedIds[0]);
                 } else {
+                    // Make a move
                     response = tictactoe.makeMove(senderID, args[0]);
                 }
                 break;

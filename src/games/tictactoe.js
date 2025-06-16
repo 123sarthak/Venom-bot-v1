@@ -2,100 +2,139 @@ const { formatText } = require('../utils/textFormatter');
 
 class TicTacToe {
     constructor() {
-        this.games = new Map(); // Store active games
+        this.games = new Map();
     }
 
-    startGame(playerId) {
-        const board = [
-            ['1', '2', '3'],
-            ['4', '5', '6'],
-            ['7', '8', '9']
-        ];
-        
-        this.games.set(playerId, {
-            board,
+    startGame(userId, mentionedId = null) {
+        // Check if either player already has an active game
+        if (this.games.has(userId) || (mentionedId && this.games.has(mentionedId))) {
+            return formatText('❌ One of the players already has an active game! Finish it first.');
+        }
+
+        // Create a unique game ID using both players' IDs
+        const gameId = mentionedId ? `${userId}_${mentionedId}` : userId;
+
+        this.games.set(gameId, {
+            board: Array(9).fill(' '),
             currentPlayer: 'X',
-            moves: 0
+            moves: 0,
+            players: {
+                X: userId,
+                O: mentionedId || 'AI'
+            },
+            isTwoPlayer: !!mentionedId
         });
 
-        return formatText(`🎮 *Tic Tac Toe Game Started!*\n\n${this.formatBoard(board)}\n\nYou're X! Use numbers 1-9 to make your move.\nExample: ${TEXT_STYLES.COMMAND}tictactoe 5`);
+        const game = this.games.get(gameId);
+        const opponentName = mentionedId ? `<@${mentionedId}>` : 'AI';
+
+        return formatText(
+            '🎮 New Tic Tac Toe game started!\n\n' +
+            `Player X: <@${userId}>\n` +
+            `Player O: ${opponentName}\n\n` +
+            this.formatBoard(gameId) + '\n\n' +
+            'Use !tictactoe <position> to make a move.\n' +
+            'Positions are numbered 1-9, from left to right, top to bottom.\n' +
+            'Example: !tictactoe 5 for the center position.'
+        );
     }
 
-    makeMove(playerId, position) {
-        const game = this.games.get(playerId);
-        if (!game) {
-            return formatText("❌ No active game found. Start a new game with !tictactoe");
+    makeMove(userId, position) {
+        // Find the game where this user is a player
+        let gameId = null;
+        for (const [id, game] of this.games.entries()) {
+            if (game.players.X === userId || game.players.O === userId) {
+                gameId = id;
+                break;
+            }
+        }
+
+        if (!gameId) {
+            return formatText('❌ No active game found. Start a new game with !tictactoe [@mention]');
+        }
+
+        const game = this.games.get(gameId);
+        
+        // Check if it's the player's turn
+        const playerSymbol = game.players.X === userId ? 'X' : 'O';
+        if (game.currentPlayer !== playerSymbol) {
+            const currentPlayer = game.currentPlayer === 'X' ? 
+                `<@${game.players.X}>` : 
+                (game.players.O === 'AI' ? 'AI' : `<@${game.players.O}>`);
+            return formatText(`❌ It's ${currentPlayer}'s turn!`);
         }
 
         const pos = parseInt(position) - 1;
         if (isNaN(pos) || pos < 0 || pos > 8) {
-            return formatText("❌ Invalid move! Please use numbers 1-9.");
+            return formatText('❌ Invalid position! Use a number between 1 and 9.');
         }
 
-        const row = Math.floor(pos / 3);
-        const col = pos % 3;
-
-        if (game.board[row][col] === 'X' || game.board[row][col] === 'O') {
-            return formatText(`❌ Position ${position} is already taken! Try another move.`);
+        if (game.board[pos] !== ' ') {
+            return formatText('❌ That position is already taken!');
         }
 
-        game.board[row][col] = game.currentPlayer;
+        game.board[pos] = game.currentPlayer;
         game.moves++;
 
-        const board = this.formatBoard(game.board);
         const winner = this.checkWinner(game.board);
-        
         if (winner) {
-            this.games.delete(playerId);
-            return formatText(`🎮 *Game Over!*\n\n${board}\n\n🎉 ${winner} wins!`);
+            const winnerId = game.players[winner];
+            const winnerName = winnerId === 'AI' ? 'AI' : `<@${winnerId}>`;
+            this.games.delete(gameId);
+            return formatText(
+                `🎉 ${winnerName} wins!\n\n` +
+                this.formatBoard(gameId)
+            );
         }
 
         if (game.moves === 9) {
-            this.games.delete(playerId);
-            return formatText(`🎮 *Game Over!*\n\n${board}\n\n🤝 It's a tie!`);
+            this.games.delete(gameId);
+            return formatText(
+                '🤝 Game ended in a tie!\n\n' +
+                this.formatBoard(gameId)
+            );
         }
 
         game.currentPlayer = game.currentPlayer === 'X' ? 'O' : 'X';
-        return formatText(`🎮 *Tic Tac Toe*\n\n${board}\n\n${game.currentPlayer}'s turn. Use numbers 1-9 to make your move.`);
-    }
+        const nextPlayer = game.currentPlayer === 'X' ? 
+            `<@${game.players.X}>` : 
+            (game.players.O === 'AI' ? 'AI' : `<@${game.players.O}>`);
 
-    formatBoard(board) {
-        const formattedBoard = board.map(row => 
-            row.map(cell => {
-                if (cell === 'X') return '❌';
-                if (cell === 'O') return '⭕';
-                return cell;
-            }).join(' │ ')
-        ).join('\n' + '─'.repeat(9) + '\n');
-        
-        return formattedBoard;
+        return formatText(
+            `🎮 ${nextPlayer}'s turn!\n\n` +
+            this.formatBoard(gameId)
+        );
     }
 
     checkWinner(board) {
-        // Check rows
-        for (let i = 0; i < 3; i++) {
-            if (board[i][0] === board[i][1] && board[i][1] === board[i][2]) {
-                return board[i][0];
-            }
-        }
+        const lines = [
+            [0, 1, 2], [3, 4, 5], [6, 7, 8], // rows
+            [0, 3, 6], [1, 4, 7], [2, 5, 8], // columns
+            [0, 4, 8], [2, 4, 6] // diagonals
+        ];
 
-        // Check columns
-        for (let i = 0; i < 3; i++) {
-            if (board[0][i] === board[1][i] && board[1][i] === board[2][i]) {
-                return board[0][i];
+        for (const [a, b, c] of lines) {
+            if (board[a] !== ' ' && board[a] === board[b] && board[a] === board[c]) {
+                return board[a];
             }
-        }
-
-        // Check diagonals
-        if (board[0][0] === board[1][1] && board[1][1] === board[2][2]) {
-            return board[0][0];
-        }
-        if (board[0][2] === board[1][1] && board[1][1] === board[2][0]) {
-            return board[0][2];
         }
 
         return null;
     }
+
+    formatBoard(gameId) {
+        const game = this.games.get(gameId);
+        if (!game) return '';
+
+        const board = game.board.map(cell => cell === ' ' ? '⬜' : (cell === 'X' ? '❌' : '⭕'));
+        return [
+            `${board[0]} | ${board[1]} | ${board[2]}`,
+            '─────────',
+            `${board[3]} | ${board[4]} | ${board[5]}`,
+            '─────────',
+            `${board[6]} | ${board[7]} | ${board[8]}`
+        ].join('\n');
+    }
 }
 
-module.exports = { TicTacToe }; 
+module.exports = TicTacToe; 
