@@ -7,31 +7,30 @@ class InfoCommand {
     }
 
     async execute(args, context) {
-        const infoText = `
-+--------------------------------------------------------------+
-|                   VENOM BOT INFORMATION                      |
-+--------------------------------------------------------------+
-|  DEVELOPER INFORMATION                                       |
-|  Name: Sarthak                                               |
-|  Role: Bot Developer                                         |
-|  Contact: sarthak@example.com                                |
-+--------------------------------------------------------------+
-|  BOT FEATURES                                                |
-|  Games: Tic Tac Toe, Rock Paper Scissors                     |
-|  Fun: 8ball, Roll, Flip                                      |
-|  Utility: Info, Help, Ping                                   |
-+--------------------------------------------------------------+
-|  ADMIN COMMANDS                                              |
-|  !admin - Show admin commands                                |
-|  !broadcast - Send message to all users                      |
-|  !restart - Restart the bot                                  |
-+--------------------------------------------------------------+
-|  CONTACT                                                     |
-|  Facebook: facebook.com/sarthak                              |
-|  Email: sarthak@example.com                                  |
-|  GitHub: github.com/sarthak                                  |
-+--------------------------------------------------------------+
-`;
+        const infoText = `ꜱᴀʀᴛʜᴀᴋ'ꜱ ʙᴏᴛ - Command List
+
+🎯 General Commands:
+• !ᴄᴏᴍᴍᴀɴᴅhelp
+• !ᴄᴏᴍᴍᴀɴᴅabout
+• !ᴄᴏᴍᴍᴀɴᴅstats
+• !ᴄᴏᴍᴍᴀɴᴅinfo
+
+🎮 Game Commands:
+• !ᴄᴏᴍᴍᴀɴᴅtictactoe
+
+🛠️ Utility Commands:
+• !ᴄᴏᴍᴍᴀɴᴅdownload
+
+👑 Admin Commands:
+• !ᴄᴏᴍᴍᴀɴᴅbroadcast 👑 ᴀᴅᴍɪɴ
+• !ᴄᴏᴍᴍᴀɴᴅaddgroup 👑 ᴀᴅᴍɪɴ
+• !ᴄᴏᴍᴍᴀɴᴅremovegroup 👑 ᴀᴅᴍɪɴ
+• !ᴄᴏᴍᴍᴀɴᴅlistgroups 👑 ᴀᴅᴍɪɴ
+• !ᴄᴏᴍᴍᴀɴᴅstats 👑 ᴀᴅᴍɪɴ
+
+
+ꜱᴀʀᴛʜᴀᴋ'ꜱ ʙᴏᴛ v1.0.0
+Created by Sarthak`;
 
         return formatText(infoText);
     }
