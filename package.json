@@ -1,12 +1,26 @@
 {
   "name": "venom-bot-v1",
   "version": "1.0.0",
-  "description": "A Facebook Messenger bot with group chat support and various features",
+  "description": "A Facebook Messenger bot with games and utilities",
   "main": "src/index.js",
   "scripts": {
     "start": "node src/index.js",
     "dev": "nodemon src/index.js",
     "deploy": "pm2 start src/index.js --name venom-bot"
+  },
+  "dependencies": {
+    "@dongdev/fca-unofficial": "^1.0.19",
+    "axios": "^1.6.7",
+    "dotenv": "^16.4.5",
+    "express": "^4.18.2",
+    "fs-extra": "^11.2.0",
+    "moment": "^2.30.1",
+    "pm2": "^5.3.1",
+    "qrcode-terminal": "^0.12.0",
+    "sqlite3": "^5.1.7"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.3"
   },
   "repository": {
     "type": "git",
@@ -16,25 +30,9 @@
     "facebook",
     "messenger",
     "bot",
-    "group-chat"
+    "games",
+    "utilities"
   ],
   "author": "Sarthak",
-  "license": "MIT",
-  "dependencies": {
-    "axios": "^1.6.7",
-    "dotenv": "^16.4.5",
-    "express": "^4.18.2",
-    "facebook-chat-api": "^1.8.0",
-    "fs-extra": "^11.2.0",
-    "pm2": "^5.3.1",
-    "qrcode-terminal": "^0.12.0",
-    "sqlite3": "^5.1.7",
-    "ytdl-core": "^4.11.5"
-  },
-  "devDependencies": {
-    "nodemon": "^3.0.3"
-  },
-  "engines": {
-    "node": ">=16.0.0"
-  }
+  "license": "MIT"
 }

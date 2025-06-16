@@ -4,7 +4,6 @@ const bodyParser = require('body-parser');
 const { FacebookAPI } = require('./utils/facebookApi');
 const { CommandHandler } = require('./handlers/commandHandler');
 const { TicTacToe } = require('./games/tictactoe');
-const { VideoDownloader } = require('./utils/videoDownloader');
 const { COMMAND_CATEGORIES, TEXT_STYLES } = require('./config/botConfig');
 const { handleCommand } = require('./handlers/commandHandler');
 const { formatText } = require('./utils/textFormatter');
@@ -18,19 +17,19 @@ const adminIds = (process.env.ADMIN_IDS || '').split(',').map(id => id.trim());
 const facebookApi = new FacebookAPI();
 const commandHandler = new CommandHandler();
 const ticTacToe = new TicTacToe();
-const videoDownloader = new VideoDownloader();
 
 // URL detection regex
 const urlRegex = /(https?:\/\/[^\s]+)/g;
 
 // Register commands
-commandHandler.registerCommand('help', 
-    async (senderId) => commandHandler.getHelpMessage(),
-    COMMAND_CATEGORIES.GENERAL
-);
+commandHandler.registerCommand('help', async (senderID, args) => {
+    return commandHandler.getHelpMessage();
+});
 
 commandHandler.registerCommand('about',
-    async (senderId) => commandHandler.getAboutMessage(),
+    async (senderId) => {
+        return commandHandler.getAboutMessage();
+    },
     COMMAND_CATEGORIES.GENERAL
 );
 
@@ -49,7 +48,7 @@ commandHandler.registerCommand('download',
         if (!args) {
             return 'Please provide a video URL to download.';
         }
-        return videoDownloader.downloadVideo(args);
+        return 'Video download functionality has been removed.';
     },
     COMMAND_CATEGORIES.UTILITY
 );
@@ -99,19 +98,6 @@ async function initializeBot() {
                 console.log(`📨 New message from ${senderID} in thread ${threadID}`);
                 console.log(`💬 Message: ${body}`);
 
-                // Check for video URLs in the message
-                const urls = body.match(urlRegex);
-                if (urls) {
-                    for (const url of urls) {
-                        // Check if it's a supported video URL
-                        if (videoDownloader.detectPlatform(url)) {
-                            console.log(`🎥 Detected video URL: ${url}`);
-                            const response = await videoDownloader.downloadVideo(url);
-                            await facebookApi.sendMessage(threadID, response);
-                        }
-                    }
-                }
-
                 // Check if message starts with prefix
                 if (!body.startsWith(prefix)) {
                     console.log('❌ Message does not start with prefix, ignoring');
@@ -137,7 +123,7 @@ async function initializeBot() {
             } catch (error) {
                 console.error('❌ Error handling message:', error);
                 try {
-                    await facebookApi.sendMessage(message.threadID, '❌ An error occurred while processing your message. Please try again later.');
+                    await facebookApi.sendMessage(message.threadID, '❌ An error occurred while processing your command. Please try again later.');
                 } catch (sendError) {
                     console.error('❌ Error sending error message:', sendError);
                 }
