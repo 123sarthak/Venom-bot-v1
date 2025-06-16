@@ -6,9 +6,13 @@ const { CommandHandler } = require('./handlers/commandHandler');
 const { TicTacToe } = require('./games/tictactoe');
 const { VideoDownloader } = require('./utils/videoDownloader');
 const { COMMAND_CATEGORIES, TEXT_STYLES } = require('./config/botConfig');
+const { handleCommand } = require('./handlers/commandHandler');
+const { formatText } = require('./utils/textFormatter');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const prefix = process.env.PREFIX || '!';
+const adminIds = (process.env.ADMIN_IDS || '').split(',').map(id => id.trim());
 
 // Initialize handlers and utilities
 const facebookApi = new FacebookAPI();
@@ -74,39 +78,91 @@ commandHandler.registerCommand('stats',
 
 // Initialize Facebook API
 async function initializeBot() {
-    console.log('🤖 Initializing Sarthak\'s Bot...');
-    const success = await facebookApi.initialize();
-    
-    if (success) {
-        console.log('✅ Bot is ready to use!');
+    try {
+        console.log('🤖 Starting Venom Bot...');
         
-        // Start listening for messages
+        // Initialize Facebook API
+        const initialized = await facebookApi.initialize();
+        if (!initialized) {
+            throw new Error('Failed to initialize Facebook API');
+        }
+
+        // Set up message listener
         facebookApi.listen(async (message) => {
-            const { threadID, body, senderID } = message;
+            try {
+                const { threadID, senderID, body } = message;
+                
+                // Log message details
+                console.log(`📨 New message from ${senderID} in thread ${threadID}`);
+                console.log(`💬 Message: ${body}`);
 
-            // Handle prefix-only message
-            if (body === '!') {
-                await facebookApi.sendMessage(threadID, commandHandler.getAboutMessage());
-                return;
-            }
+                // Check if message starts with prefix
+                if (!body.startsWith(prefix)) {
+                    console.log('❌ Message does not start with prefix, ignoring');
+                    return;
+                }
 
-            // Handle commands
-            if (body.startsWith('!')) {
-                const [command, ...args] = body.slice(1).split(' ');
-                const response = await commandHandler.handleCommand(senderID, command, args.join(' '));
-                await facebookApi.sendMessage(threadID, response);
+                // Parse command
+                const args = body.slice(prefix.length).trim().split(/ +/);
+                const command = args.shift().toLowerCase();
+
+                console.log(`🔍 Command detected: ${command}`);
+                console.log(`📝 Arguments: ${args.join(', ')}`);
+
+                // Check if user is admin for admin commands
+                const isAdmin = adminIds.includes(senderID.toString());
+                if (command === 'broadcast' && !isAdmin) {
+                    await facebookApi.sendMessage(threadID, formatText('❌ You do not have permission to use this command.'));
+                    return;
+                }
+
+                // Handle command
+                const response = await handleCommand(command, args, {
+                    threadID,
+                    senderID,
+                    isAdmin,
+                    isGroupChat: facebookApi.isGroupChat(threadID)
+                });
+
+                if (response) {
+                    await facebookApi.sendMessage(threadID, response);
+                }
+            } catch (error) {
+                console.error('❌ Error handling message:', error);
+                try {
+                    await facebookApi.sendMessage(message.threadID, formatText('❌ An error occurred while processing your command. Please try again later.'));
+                } catch (sendError) {
+                    console.error('❌ Error sending error message:', sendError);
+                }
             }
         });
-    } else {
-        console.error('❌ Failed to initialize bot');
+
+        // Set up health check endpoint
+        app.get('/', (req, res) => {
+            res.json({ status: 'ok', uptime: process.uptime() });
+        });
+
+        // Start server
+        app.listen(PORT, () => {
+            console.log(`🌐 Server is running on port ${PORT}`);
+            console.log(`✅ Bot is ready! Use prefix "${prefix}" to interact with the bot.`);
+        });
+
+    } catch (error) {
+        console.error('❌ Failed to initialize bot:', error);
         process.exit(1);
     }
 }
 
-// Start the bot
-initializeBot();
+// Handle uncaught exceptions
+process.on('uncaughtException', (error) => {
+    console.error('❌ Uncaught Exception:', error);
+});
 
-// Keep the server running
-app.listen(PORT, () => {
-    console.log(`🌐 Server is running on port ${PORT}`);
-}); 
+// Handle unhandled promise rejections
+process.on('unhandledRejection', (reason, promise) => {
+    console.error('❌ Unhandled Rejection at:', promise, 'reason:', reason);
+});
+
+// Start the bot
+initializeBot(); 

@@ -7,27 +7,74 @@ class FacebookAPI {
     constructor() {
         this.api = null;
         this.appstatePath = path.join(__dirname, '../../appstate.json');
+        this.isLoggedIn = false;
     }
 
     async initialize() {
         try {
+            console.log('📱 Starting Facebook login process...');
+            
             // Check if appstate exists
             if (fs.existsSync(this.appstatePath)) {
-                console.log('📱 Loading appstate...');
+                console.log('📱 Found appstate.json, attempting to login...');
                 const appstate = await fs.readJson(this.appstatePath);
                 this.api = await this.loginWithAppstate(appstate);
             } else {
-                console.log('❌ No appstate found. Please provide your Facebook credentials.');
+                console.log('❌ No appstate.json found. Please provide your Facebook credentials.');
                 this.api = await this.loginWithCredentials();
             }
 
             if (this.api) {
+                this.isLoggedIn = true;
                 console.log('✅ Successfully logged in to Facebook!');
+                
+                // Get user info
+                const userInfo = await this.getUserInfo();
+                console.log(`👤 Logged in as: ${userInfo.name} (${userInfo.id})`);
+                
+                // Set up error handlers
+                this.setupErrorHandlers();
+                
                 return true;
             }
         } catch (error) {
             console.error('❌ Login error:', error);
             return false;
+        }
+    }
+
+    setupErrorHandlers() {
+        if (!this.api) return;
+
+        // Handle connection errors
+        this.api.on('error', (err) => {
+            console.error('❌ Facebook API Error:', err);
+            if (err.code === 'ECONNRESET' || err.code === 'ETIMEDOUT') {
+                console.log('🔄 Attempting to reconnect...');
+                this.reconnect();
+            }
+        });
+
+        // Handle disconnection
+        this.api.on('disconnect', () => {
+            console.log('⚠️ Disconnected from Facebook. Attempting to reconnect...');
+            this.reconnect();
+        });
+    }
+
+    async reconnect() {
+        if (!this.isLoggedIn) return;
+        
+        try {
+            console.log('🔄 Reconnecting to Facebook...');
+            const appstate = await fs.readJson(this.appstatePath);
+            this.api = await this.loginWithAppstate(appstate);
+            if (this.api) {
+                console.log('✅ Reconnected successfully!');
+                this.setupErrorHandlers();
+            }
+        } catch (error) {
+            console.error('❌ Reconnection failed:', error);
         }
     }
 
@@ -72,14 +119,33 @@ class FacebookAPI {
         });
     }
 
+    async getUserInfo() {
+        return new Promise((resolve, reject) => {
+            if (!this.api) {
+                reject(new Error('API not initialized'));
+                return;
+            }
+
+            this.api.getUserInfo(this.api.getCurrentUserID(), (err, info) => {
+                if (err) {
+                    reject(err);
+                    return;
+                }
+                resolve(info[this.api.getCurrentUserID()]);
+            });
+        });
+    }
+
     async sendMessage(threadID, message) {
-        if (!this.api) {
-            console.error('❌ API not initialized');
+        if (!this.api || !this.isLoggedIn) {
+            console.error('❌ API not initialized or not logged in');
             return false;
         }
 
         try {
+            console.log(`📤 Sending message to thread ${threadID}`);
             await this.api.sendMessage(message, threadID);
+            console.log('✅ Message sent successfully');
             return true;
         } catch (error) {
             console.error('❌ Error sending message:', error);
@@ -88,11 +154,13 @@ class FacebookAPI {
     }
 
     listen(callback) {
-        if (!this.api) {
-            console.error('❌ API not initialized');
+        if (!this.api || !this.isLoggedIn) {
+            console.error('❌ API not initialized or not logged in');
             return;
         }
 
+        console.log('👂 Listening for messages...');
+        
         this.api.listen((err, message) => {
             if (err) {
                 console.error('❌ Listen error:', err);
@@ -100,9 +168,14 @@ class FacebookAPI {
             }
 
             if (message && message.body) {
+                console.log(`📥 Received message in thread ${message.threadID}: ${message.body}`);
                 callback(message);
             }
         });
+    }
+
+    isGroupChat(threadID) {
+        return threadID.toString().length > 15;
     }
 }
 

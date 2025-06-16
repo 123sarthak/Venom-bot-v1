@@ -1,5 +1,5 @@
 {
-  "name": "sarthak-messenger-bot",
+  "name": "venom-bot-v1",
   "version": "1.0.0",
   "description": "Sarthak's Facebook Messenger Bot with Tic Tac Toe and Video Download features",
   "main": "src/index.js",
@@ -7,7 +7,8 @@
     "start": "node src/index.js",
     "dev": "nodemon src/index.js",
     "setup": "npm install",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "deploy": "pm2 start src/index.js --name venom-bot"
   },
   "dependencies": {
     "express": "^4.18.2",
@@ -18,7 +19,8 @@
     "facebook-chat-api": "^1.8.0",
     "node-fetch": "^2.7.0",
     "fs-extra": "^11.2.0",
-    "qrcode-terminal": "^0.12.0"
+    "qrcode-terminal": "^0.12.0",
+    "pm2": "^5.3.1"
   },
   "devDependencies": {
     "nodemon": "^3.0.2"

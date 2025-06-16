@@ -1,17 +1,24 @@
 services:
   - type: web
-    name: sarthak-messenger-bot
+    name: venom-bot-v1
     env: node
-    buildCommand: npm install
-    startCommand: npm start
+    buildCommand: |
+      npm install
+      npm install -g pm2
+    startCommand: pm2 start src/index.js --name venom-bot
     envVars:
       - key: NODE_ENV
         value: production
-      - key: PAGE_ACCESS_TOKEN
+      - key: FB_EMAIL
         sync: false
-      - key: VERIFY_TOKEN
+      - key: FB_PASSWORD
         sync: false
+      - key: ADMIN_IDS
+        sync: false
+      - key: PORT
+        value: "3000"
       - key: PREFIX
         value: "!"
-      - key: PORT
-        value: "3000" 
+    healthCheckPath: /
+    autoDeploy: true
+    plan: free 
