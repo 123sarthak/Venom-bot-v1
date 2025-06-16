@@ -1,7 +1,7 @@
 {
   "name": "venom-bot-v1",
   "version": "1.0.0",
-  "description": "A Facebook Messenger bot with group chat support",
+  "description": "A Facebook Messenger bot with games and utilities",
   "main": "src/index.js",
   "scripts": {
     "start": "node src/index.js",
@@ -16,26 +16,21 @@
     "facebook",
     "messenger",
     "bot",
-    "group-chat",
-    "venom"
+    "games",
+    "utilities"
   ],
   "author": "Sarthak",
   "license": "MIT",
   "dependencies": {
     "axios": "^1.6.7",
-    "bluebird": "^3.7.2",
-    "cheerio": "^1.0.0-rc.12",
     "dotenv": "^16.4.5",
     "express": "^4.18.2",
     "facebook-chat-api": "^1.8.0",
-    "fca-unofficial": "^1.3.10",
     "fs-extra": "^11.2.0",
     "moment": "^2.30.1",
-    "node-fetch": "^2.7.0",
     "pm2": "^5.3.1",
     "qrcode-terminal": "^0.12.0",
-    "request": "^2.88.2",
-    "ytdl-core": "^4.11.5"
+    "sqlite3": "^5.1.7"
   },
   "devDependencies": {
     "nodemon": "^3.0.3"
