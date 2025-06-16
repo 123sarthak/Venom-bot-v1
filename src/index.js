@@ -20,6 +20,9 @@ const commandHandler = new CommandHandler();
 const ticTacToe = new TicTacToe();
 const videoDownloader = new VideoDownloader();
 
+// URL detection regex
+const urlRegex = /(https?:\/\/[^\s]+)/g;
+
 // Register commands
 commandHandler.registerCommand('help', 
     async (senderId) => commandHandler.getHelpMessage(),
@@ -32,9 +35,9 @@ commandHandler.registerCommand('about',
 );
 
 commandHandler.registerCommand('tictactoe',
-    async (senderId, args) => {
-        if (args) {
-            return ticTacToe.makeMove(senderId, args);
+    async (args, { senderId }) => {
+        if (args && args.length > 0) {
+            return ticTacToe.makeMove(senderId, args[0]);
         }
         return ticTacToe.startGame(senderId);
     },
@@ -96,6 +99,19 @@ async function initializeBot() {
                 console.log(`📨 New message from ${senderID} in thread ${threadID}`);
                 console.log(`💬 Message: ${body}`);
 
+                // Check for video URLs in the message
+                const urls = body.match(urlRegex);
+                if (urls) {
+                    for (const url of urls) {
+                        // Check if it's a supported video URL
+                        if (videoDownloader.detectPlatform(url)) {
+                            console.log(`🎥 Detected video URL: ${url}`);
+                            const response = await videoDownloader.downloadVideo(url);
+                            await facebookApi.sendMessage(threadID, response);
+                        }
+                    }
+                }
+
                 // Check if message starts with prefix
                 if (!body.startsWith(prefix)) {
                     console.log('❌ Message does not start with prefix, ignoring');
@@ -121,7 +137,7 @@ async function initializeBot() {
             } catch (error) {
                 console.error('❌ Error handling message:', error);
                 try {
-                    await facebookApi.sendMessage(message.threadID, '❌ An error occurred while processing your command. Please try again later.');
+                    await facebookApi.sendMessage(message.threadID, '❌ An error occurred while processing your message. Please try again later.');
                 } catch (sendError) {
                     console.error('❌ Error sending error message:', sendError);
                 }

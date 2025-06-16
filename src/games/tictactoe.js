@@ -1,3 +1,5 @@
+const { formatText } = require('../utils/textFormatter');
+
 class TicTacToe {
     constructor() {
         this.games = new Map(); // Store active games
@@ -16,25 +18,25 @@ class TicTacToe {
             moves: 0
         });
 
-        return this.formatBoard(board) + "\n\nGame started! You're X. Use numbers 1-9 to make your move.";
+        return formatText(`🎮 *Tic Tac Toe Game Started!*\n\n${this.formatBoard(board)}\n\nYou're X! Use numbers 1-9 to make your move.\nExample: ${TEXT_STYLES.COMMAND}tictactoe 5`);
     }
 
     makeMove(playerId, position) {
         const game = this.games.get(playerId);
         if (!game) {
-            return "No active game found. Start a new game with !tictactoe";
+            return formatText("❌ No active game found. Start a new game with !tictactoe");
         }
 
         const pos = parseInt(position) - 1;
         if (isNaN(pos) || pos < 0 || pos > 8) {
-            return "Invalid move! Please use numbers 1-9.";
+            return formatText("❌ Invalid move! Please use numbers 1-9.");
         }
 
         const row = Math.floor(pos / 3);
         const col = pos % 3;
 
         if (game.board[row][col] === 'X' || game.board[row][col] === 'O') {
-            return "That position is already taken! Try another move.";
+            return formatText(`❌ Position ${position} is already taken! Try another move.`);
         }
 
         game.board[row][col] = game.currentPlayer;
@@ -45,20 +47,28 @@ class TicTacToe {
         
         if (winner) {
             this.games.delete(playerId);
-            return `${board}\n\n${winner} wins! 🎉`;
+            return formatText(`🎮 *Game Over!*\n\n${board}\n\n🎉 ${winner} wins!`);
         }
 
         if (game.moves === 9) {
             this.games.delete(playerId);
-            return `${board}\n\nIt's a tie! 🤝`;
+            return formatText(`🎮 *Game Over!*\n\n${board}\n\n🤝 It's a tie!`);
         }
 
         game.currentPlayer = game.currentPlayer === 'X' ? 'O' : 'X';
-        return `${board}\n\n${game.currentPlayer}'s turn. Use numbers 1-9 to make your move.`;
+        return formatText(`🎮 *Tic Tac Toe*\n\n${board}\n\n${game.currentPlayer}'s turn. Use numbers 1-9 to make your move.`);
     }
 
     formatBoard(board) {
-        return board.map(row => row.join(' | ')).join('\n' + '-'.repeat(9) + '\n');
+        const formattedBoard = board.map(row => 
+            row.map(cell => {
+                if (cell === 'X') return '❌';
+                if (cell === 'O') return '⭕';
+                return cell;
+            }).join(' │ ')
+        ).join('\n' + '─'.repeat(9) + '\n');
+        
+        return formattedBoard;
     }
 
     checkWinner(board) {
