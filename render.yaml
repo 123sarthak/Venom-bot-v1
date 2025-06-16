@@ -5,6 +5,7 @@ services:
     buildCommand: |
       npm install
       npm install -g pm2
+      npm install ytdl-core
     startCommand: pm2 start src/index.js --name venom-bot
     envVars:
       - key: NODE_ENV
