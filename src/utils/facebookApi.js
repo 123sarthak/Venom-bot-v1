@@ -40,49 +40,12 @@ class FacebookAPI {
                     console.warn('⚠️ Could not fetch user info. The bot will still run.');
                 }
                 
-                // Set up error handlers
-                this.setupErrorHandlers();
-                
+                // No event handlers needed; facebook-chat-api does not support .on
                 return true;
             }
         } catch (error) {
             console.error('❌ Login error:', error);
             return false;
-        }
-    }
-
-    setupErrorHandlers() {
-        if (!this.api) return;
-
-        // Handle connection errors
-        this.api.on('error', (err) => {
-            console.error('❌ Facebook API Error:', err);
-            if (err.code === 'ECONNRESET' || err.code === 'ETIMEDOUT') {
-                console.log('🔄 Attempting to reconnect...');
-                this.reconnect();
-            }
-        });
-
-        // Handle disconnection
-        this.api.on('disconnect', () => {
-            console.log('⚠️ Disconnected from Facebook. Attempting to reconnect...');
-            this.reconnect();
-        });
-    }
-
-    async reconnect() {
-        if (!this.isLoggedIn) return;
-        
-        try {
-            console.log('🔄 Reconnecting to Facebook...');
-            const appstate = await fs.readJson(this.appstatePath);
-            this.api = await this.loginWithAppstate(appstate);
-            if (this.api) {
-                console.log('✅ Reconnected successfully!');
-                this.setupErrorHandlers();
-            }
-        } catch (error) {
-            console.error('❌ Reconnection failed:', error);
         }
     }
 
