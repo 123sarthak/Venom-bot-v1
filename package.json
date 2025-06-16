@@ -15,8 +15,10 @@
     "axios": "^1.6.2",
     "dotenv": "^16.3.1",
     "ytdl-core": "^4.11.5",
-    "facebook-nodejs-business-sdk": "^18.0.4",
-    "node-fetch": "^2.7.0"
+    "facebook-chat-api": "^1.8.0",
+    "node-fetch": "^2.7.0",
+    "fs-extra": "^11.2.0",
+    "qrcode-terminal": "^0.12.0"
   },
   "devDependencies": {
     "nodemon": "^3.0.2"
@@ -26,7 +28,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/123sarthak/sarthak-messenger-bot"
+    "url": "https://github.com/123sarthak/Venom-bot-v1"
   },
   "keywords": [
     "facebook",
