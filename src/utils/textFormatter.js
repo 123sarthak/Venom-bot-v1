@@ -1,18 +1,61 @@
 const { TEXT_STYLES } = require('../config/botConfig');
 
 const VENOM_ASCII_ART = `
-██╗   ██╗███████╗███╗   ██╗ ██████╗ ███╗   ███╗
-██║   ██║██╔════╝████╗  ██║██╔═══██╗████╗ ████║
-██║   ██║█████╗  ██╔██╗ ██║██║   ██║██╔████╔██║
-╚██╗ ██╔╝██╔══╝  ██║╚██╗██║██║   ██║██║╚██╔╝██║
- ╚████╔╝ ███████╗██║ ╚████║╚██████╔╝██║ ╚═╝ ██║
-  ╚═══╝  ╚══════╝╚═╝  ╚═══╝ ╚═════╝ ╚═╝     ╚═╝
+╔════════════════════════════════════════════════════════════╗
+║                                                            ║
+║  ██╗   ██╗███████╗███╗   ██╗ ██████╗ ███╗   ███╗         ║
+║  ██║   ██║██╔════╝████╗  ██║██╔═══██╗████╗ ████║         ║
+║  ██║   ██║█████╗  ██╔██╗ ██║██║   ██║██╔████╔██║         ║
+║  ╚██╗ ██╔╝██╔══╝  ██║╚██╗██║██║   ██║██║╚██╔╝██║         ║
+║   ╚████╔╝ ███████╗██║ ╚████║╚██████╔╝██║ ╚═╝ ██║         ║
+║    ╚═══╝  ╚══════╝╚═╝  ╚═══╝ ╚═════╝ ╚═╝     ╚═╝         ║
+║                                                            ║
+║  ╔══════════════════════════════════════════════════════╗  ║
+║  ║                 DEVELOPER INFO                       ║  ║
+║  ╚══════════════════════════════════════════════════════╝  ║
+║                                                            ║
+║  👤 Name: Sarthak                                        ║
+║  💻 Role: Full Stack Developer                           ║
+║  🌐 GitHub: github.com/123sarthak                        ║
+║  🎯 Skills: JavaScript, Node.js, React, Python, SQL      ║
+║  💡 Motto: Code, Create, Innovate                        ║
+║                                                            ║
+║  ╔══════════════════════════════════════════════════════╗  ║
+║  ║                 BOT INFO                             ║  ║
+║  ╚══════════════════════════════════════════════════════╝  ║
+║                                                            ║
+║  📱 Version: 1.0.0                                       ║
+║  ⚡ Prefix: !                                            ║
+║  🎮 Games: TicTacToe                                     ║
+║  🛠️ Utilities: Download, Broadcast                       ║
+║                                                            ║
+║  ╔══════════════════════════════════════════════════════╗  ║
+║  ║                 ADMIN INFO                           ║  ║
+║  ╚══════════════════════════════════════════════════════╝  ║
+║                                                            ║
+║  👑 Total Admins: 2                                      ║
+║  🔑 Admin IDs:                                           ║
+║     • 123456789                                          ║
+║     • 987654321                                          ║
+║                                                            ║
+║  ╔══════════════════════════════════════════════════════╗  ║
+║  ║                 CONTACT INFO                         ║  ║
+║  ╚══════════════════════════════════════════════════════╝  ║
+║                                                            ║
+║  📧 Email: sarthak@example.com                           ║
+║  💬 Discord: sarthak#1234                                ║
+║  📱 Telegram: @sarthak                                   ║
+║                                                            ║
+╚════════════════════════════════════════════════════════════╝
 `;
 
 const DEVELOPER_INFO = {
     name: "Sarthak",
     role: "Full Stack Developer",
     github: "github.com/123sarthak",
+    email: "sarthak@example.com",
+    discord: "sarthak#1234",
+    telegram: "@sarthak",
     skills: ["JavaScript", "Node.js", "React", "Python", "SQL"],
     motto: "Code, Create, Innovate"
 };
@@ -47,37 +90,7 @@ function formatText(text, style) {
 }
 
 function createInfoMessage(adminIds) {
-    const { name, role, github, skills, motto } = DEVELOPER_INFO;
-    
-    return `${VENOM_ASCII_ART}
-
-${formatText('Developer Information', TEXT_STYLES.HEADER)}
-${formatText('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', TEXT_STYLES.CODE)}
-
-${formatText('Name', TEXT_STYLES.SUBHEADER)}: ${formatText(name, TEXT_STYLES.BOLD)}
-${formatText('Role', TEXT_STYLES.SUBHEADER)}: ${formatText(role, TEXT_STYLES.ITALIC)}
-${formatText('GitHub', TEXT_STYLES.SUBHEADER)}: ${formatText(github, TEXT_STYLES.CODE)}
-${formatText('Motto', TEXT_STYLES.SUBHEADER)}: ${formatText(motto, TEXT_STYLES.ITALIC)}
-
-${formatText('Skills', TEXT_STYLES.SUBHEADER)}:
-${skills.map(skill => `  • ${formatText(skill, TEXT_STYLES.CODE)}`).join('\n')}
-
-${formatText('Bot Information', TEXT_STYLES.HEADER)}
-${formatText('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', TEXT_STYLES.CODE)}
-
-${formatText('Version', TEXT_STYLES.SUBHEADER)}: ${formatText('1.0.0', TEXT_STYLES.CODE)}
-${formatText('Prefix', TEXT_STYLES.SUBHEADER)}: ${formatText('!', TEXT_STYLES.CODE)}
-${formatText('Commands', TEXT_STYLES.SUBHEADER)}: ${formatText('!help', TEXT_STYLES.CODE)}
-
-${formatText('Admin Information', TEXT_STYLES.HEADER)}
-${formatText('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', TEXT_STYLES.CODE)}
-
-${formatText('Total Admins', TEXT_STYLES.SUBHEADER)}: ${formatText(adminIds.length.toString(), TEXT_STYLES.CODE)}
-${formatText('Admin IDs', TEXT_STYLES.SUBHEADER)}:
-${adminIds.map(id => `  • ${formatText(id, TEXT_STYLES.CODE)}`).join('\n')}
-
-${formatText('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', TEXT_STYLES.CODE)}
-${formatText('Made with ❤️ by Sarthak', TEXT_STYLES.DEV)}`;
+    return VENOM_ASCII_ART;
 }
 
 module.exports = {
