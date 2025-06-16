@@ -28,9 +28,17 @@ class FacebookAPI {
                 this.isLoggedIn = true;
                 console.log('✅ Successfully logged in to Facebook!');
                 
-                // Get user info
-                const userInfo = await this.getUserInfo();
-                console.log(`👤 Logged in as: ${userInfo.name} (${userInfo.id})`);
+                // Try to get user info, but do not fail if it errors
+                try {
+                    const userInfo = await this.getUserInfo();
+                    if (userInfo && userInfo.name && userInfo.id) {
+                        console.log(`👤 Logged in as: ${userInfo.name} (${userInfo.id})`);
+                    } else {
+                        console.warn('⚠️ Could not fetch user info. The bot will still run.');
+                    }
+                } catch (err) {
+                    console.warn('⚠️ Could not fetch user info. The bot will still run.');
+                }
                 
                 // Set up error handlers
                 this.setupErrorHandlers();
