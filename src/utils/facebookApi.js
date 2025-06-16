@@ -1,5 +1,4 @@
-const login = require('facebook-chat-api');
-
+const login = require("@dongdev/fca-unofficial");
 const fs = require('fs-extra');
 const qrcode = require('qrcode-terminal');
 const path = require('path');
@@ -7,7 +6,8 @@ const path = require('path');
 class FacebookAPI {
     constructor() {
         this.api = null;
-        this.appStatePath = path.join(__dirname, '../../appstate.json');
+        this.appstatePath = path.join(__dirname, '../../appstate.json');
+        this.isLoggedIn = false;
         this.loginAttempts = 0;
         this.maxLoginAttempts = 3;
         this.retryDelay = 5000; // 5 seconds
@@ -15,220 +15,248 @@ class FacebookAPI {
 
     async initialize() {
         try {
-            console.log('🔑 Initializing Facebook API...');
+            console.log('📱 Starting Facebook login process...');
             
-            // Check if appstate.json exists
-            if (await fs.pathExists(this.appStatePath)) {
-                console.log('📂 Found appstate.json, attempting to login...');
-                const appState = await fs.readJson(this.appStatePath);
-                await this.loginWithAppstate(appState);
-            } else {
-                console.log('❌ No appstate.json found, attempting login with credentials...');
-                await this.loginWithCredentials();
+            // Check if appstate exists
+            if (!fs.existsSync(this.appstatePath)) {
+                console.log('❌ No appstate.json found. Please provide your Facebook credentials.');
+                return await this.loginWithCredentials();
             }
 
-            return true;
+            console.log('📱 Found appstate.json, attempting to login...');
+            const appstate = await fs.readJson(this.appstatePath);
+            
+            // Validate appstate
+            if (!this.isValidAppstate(appstate)) {
+                console.log('❌ Invalid appstate.json format. Please generate a new one.');
+                return await this.loginWithCredentials();
+            }
+
+            return await this.loginWithAppstate(appstate);
         } catch (error) {
-            console.error('❌ Error initializing Facebook API:', error);
+            console.error('❌ Login error:', error);
             return false;
         }
     }
 
-    async loginWithAppstate(appState) {
+    isValidAppstate(appstate) {
         try {
-            return new Promise((resolve, reject) => {
-                login({ appState }, (err, api) => {
-                    if (err) {
-                        console.error('❌ Error logging in with appstate:', err);
-                        if (err.error === 'Error retrieving userID. This can be caused by a lot of things, including getting blocked by Facebook for logging in too frequently, or checking in too frequently.') {
-                            console.log('🔄 Appstate expired, trying credentials login...');
-                            this.loginWithCredentials()
-                                .then(resolve)
-                                .catch(reject);
-                        } else {
-                            reject(err);
-                        }
-                        return;
-                    }
-
-                    this.api = api;
-                    console.log('✅ Successfully logged in with appstate');
-                    resolve(api);
-                });
-            });
+            // Basic validation of appstate structure
+            return Array.isArray(appstate) && 
+                   appstate.length > 0 && 
+                   appstate.every(cookie => 
+                       cookie && 
+                       typeof cookie === 'object' && 
+                       cookie.key && 
+                       cookie.value && 
+                       cookie.domain
+                   );
         } catch (error) {
-            console.error('❌ Error in loginWithAppstate:', error);
-            throw error;
+            console.error('❌ Error validating appstate:', error);
+            return false;
         }
+    }
+
+    async loginWithAppstate(appstate) {
+        return new Promise((resolve, reject) => {
+            const loginOptions = {
+                appState: appstate,
+                forceLogin: true,
+                logLevel: 'info'
+            };
+
+            console.log('🔄 Attempting to login with appstate...');
+            
+            login(loginOptions, async (err, api) => {
+                if (err) {
+                    console.error('❌ Appstate login failed:', err);
+                    
+                    // Handle specific error cases
+                    if (err.error === 'login-approval') {
+                        console.log('⚠️ Login approval required. Please check your Facebook account.');
+                    } else if (err.error === 'checkpoint') {
+                        console.log('⚠️ Account checkpoint detected. Please verify your account on Facebook.');
+                    } else if (err.code === 'ECONNRESET' || err.code === 'ETIMEDOUT') {
+                        console.log('⚠️ Connection error. Will retry...');
+                        if (this.loginAttempts < this.maxLoginAttempts) {
+                            this.loginAttempts++;
+                            console.log(`🔄 Retry attempt ${this.loginAttempts}/${this.maxLoginAttempts}`);
+                            setTimeout(() => {
+                                this.loginWithAppstate(appstate).then(resolve).catch(reject);
+                            }, this.retryDelay);
+                            return;
+                        }
+                    }
+                    
+                    // If all retries failed, try credentials
+                    console.log('⚠️ Falling back to credentials login...');
+                    try {
+                        const result = await this.loginWithCredentials();
+                        resolve(result);
+                    } catch (credError) {
+                        reject(credError);
+                    }
+                    return;
+                }
+
+                this.api = api;
+                this.isLoggedIn = true;
+                console.log('✅ Successfully logged in to Facebook!');
+                
+                // Try to get user info, but don't fail if it errors
+                try {
+                    const userInfo = await this.getUserInfo();
+                    if (userInfo && userInfo.name && userInfo.id) {
+                        console.log(`👤 Logged in as: ${userInfo.name} (${userInfo.id})`);
+                    } else {
+                        console.warn('⚠️ Could not fetch user info. The bot will still run.');
+                    }
+                } catch (err) {
+                    console.warn('⚠️ Could not fetch user info. The bot will still run.');
+                }
+
+                // Save the new appstate if login was successful
+                try {
+                    const newAppstate = api.getAppState();
+                    await fs.writeJson(this.appstatePath, newAppstate, { spaces: 2 });
+                    console.log('✅ Updated appstate.json saved successfully!');
+                } catch (saveError) {
+                    console.error('❌ Error saving appstate:', saveError);
+                }
+
+                resolve(true);
+            });
+        });
     }
 
     async loginWithCredentials() {
-        if (this.loginAttempts >= this.maxLoginAttempts) {
-            throw new Error('Maximum login attempts reached. Please try again later.');
-        }
+        return new Promise((resolve, reject) => {
+            const email = process.env.FB_EMAIL;
+            const password = process.env.FB_PASSWORD;
 
-        const email = process.env.FB_EMAIL;
-        const password = process.env.FB_PASSWORD;
+            if (!email || !password) {
+                console.error('❌ Facebook credentials not found in .env file');
+                reject(new Error('Missing credentials'));
+                return;
+            }
 
-        if (!email || !password) {
-            throw new Error('Facebook credentials not found in environment variables.');
-        }
-
-        try {
-            return new Promise((resolve, reject) => {
-                login({ email, password }, (err, api) => {
-                    if (err) {
-                        console.error('❌ Error logging in with credentials:', err);
-                        this.loginAttempts++;
-                        
-                        if (err.error === 'login-approval') {
-                            console.log('⚠️ Login approval required. Please check your Facebook account.');
-                            reject(new Error('Login approval required. Please check your Facebook account.'));
-                        } else if (err.error === 'checkpoint') {
-                            console.log('⚠️ Security checkpoint detected. Please check your Facebook account.');
-                            reject(new Error('Security checkpoint detected. Please check your Facebook account.'));
-                        } else {
-                            setTimeout(() => {
-                                this.loginWithCredentials()
-                                    .then(resolve)
-                                    .catch(reject);
-                            }, this.retryDelay);
-                        }
-                        return;
-                    }
-
-                    this.api = api;
-                    console.log('✅ Successfully logged in with credentials');
+            console.log('🔄 Attempting to login with credentials...');
+            
+            login({ email, password }, async (err, api) => {
+                if (err) {
+                    console.error('❌ Login failed:', err);
                     
-                    // Save appstate
-                    api.getAppState((err, appState) => {
-                        if (err) {
-                            console.error('❌ Error saving appstate:', err);
-                        } else {
-                            fs.writeJson(this.appStatePath, appState)
-                                .then(() => console.log('✅ Appstate saved successfully'))
-                                .catch(err => console.error('❌ Error writing appstate:', err));
-                        }
-                    });
+                    if (err.error === 'login-approval') {
+                        console.log('⚠️ Login approval required. Please check your Facebook account.');
+                    } else if (err.error === 'checkpoint') {
+                        console.log('⚠️ Account checkpoint detected. Please verify your account on Facebook.');
+                    }
+                    
+                    reject(err);
+                    return;
+                }
 
-                    resolve(api);
-                });
+                this.api = api;
+                this.isLoggedIn = true;
+                console.log('✅ Successfully logged in to Facebook!');
+                
+                // Save the new appstate
+                try {
+                    const appstate = api.getAppState();
+                    await fs.writeJson(this.appstatePath, appstate, { spaces: 2 });
+                    console.log('✅ New appstate.json saved successfully!');
+                } catch (saveError) {
+                    console.error('❌ Error saving appstate:', saveError);
+                }
+
+                resolve(true);
             });
-        } catch (error) {
-            console.error('❌ Error in loginWithCredentials:', error);
-            throw error;
-        }
+        });
+    }
+
+    async getUserInfo() {
+        return new Promise((resolve, reject) => {
+            if (!this.api) {
+                reject(new Error('API not initialized'));
+                return;
+            }
+
+            this.api.getUserInfo(this.api.getCurrentUserID(), (err, info) => {
+                if (err) {
+                    reject(err);
+                    return;
+                }
+                resolve(info[this.api.getCurrentUserID()]);
+            });
+        });
     }
 
     async sendMessage(threadID, message) {
-        if (!this.api) {
-            throw new Error('Facebook API not initialized');
+        if (!this.api || !this.isLoggedIn) {
+            console.error('❌ API not initialized or not logged in');
+            return false;
         }
 
         try {
-            // Add delay to prevent rate limiting
-            await new Promise(resolve => setTimeout(resolve, 1000));
-            
-            return new Promise((resolve, reject) => {
-                this.api.sendMessage(message, threadID, (err, info) => {
-                    if (err) {
-                        console.error('❌ Error sending message:', err);
-                        if (err.error === 'Error retrieving userID. This can be caused by a lot of things, including getting blocked by Facebook for logging in too frequently, or checking in too frequently.') {
-                            // Try to reinitialize the API
-                            this.initialize()
-                                .then(() => {
-                                    // Retry sending the message
-                                    this.sendMessage(threadID, message)
-                                        .then(resolve)
-                                        .catch(reject);
-                                })
-                                .catch(reject);
-                        } else {
-                            reject(err);
-                        }
-                        return;
-                    }
-                    resolve(info);
-                });
-            });
+            console.log(`📤 Sending message to thread ${threadID}`);
+            await this.api.sendMessage(message, threadID);
+            console.log('✅ Message sent successfully');
+            return true;
         } catch (error) {
-            console.error('❌ Error in sendMessage:', error);
-            throw error;
+            console.error('❌ Error sending message:', error);
+            
+            // If we get a 404 or connection error, try to reinitialize
+            if (error.code === 'ECONNRESET' || error.code === 'ETIMEDOUT' || error.statusCode === 404) {
+                console.log('⚠️ Connection error detected. Attempting to reinitialize...');
+                const reinitialized = await this.initialize();
+                if (reinitialized) {
+                    // Retry sending the message
+                    try {
+                        await this.api.sendMessage(message, threadID);
+                        console.log('✅ Message sent successfully after reinitialization');
+                        return true;
+                    } catch (retryError) {
+                        console.error('❌ Error sending message after reinitialization:', retryError);
+                    }
+                }
+            }
+            
+            return false;
         }
     }
 
     listen(callback) {
-        if (!this.api) {
-            throw new Error('Facebook API not initialized');
+        if (!this.api || !this.isLoggedIn) {
+            console.error('❌ API not initialized or not logged in');
+            return;
         }
 
-        this.api.setOptions({
-            logLevel: 'silent',
-            forceLogin: true,
-            userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-        });
-
-        this.api.listen((err, message) => {
+        console.log('👂 Listening for messages...');
+        
+        const listenCallback = async (err, message) => {
             if (err) {
-                console.error('❌ Error in message listener:', err);
-                if (err.error === 'Error retrieving userID. This can be caused by a lot of things, including getting blocked by Facebook for logging in too frequently, or checking in too frequently.') {
-                    // Try to reinitialize the API
-                    this.initialize()
-                        .then(() => {
-                            console.log('✅ API reinitialized, restarting listener...');
-                            this.listen(callback);
-                        })
-                        .catch(error => {
-                            console.error('❌ Failed to reinitialize API:', error);
-                        });
+                console.error('❌ Listen error:', err);
+                
+                // If we get a 404 or connection error, try to reinitialize
+                if (err.code === 'ECONNRESET' || err.code === 'ETIMEDOUT' || err.statusCode === 404) {
+                    console.log('⚠️ Connection error detected. Attempting to reinitialize...');
+                    const reinitialized = await this.initialize();
+                    if (reinitialized) {
+                        // Restart listening
+                        console.log('🔄 Restarting message listener...');
+                        this.api.listen(listenCallback);
+                    }
                 }
                 return;
             }
 
-            try {
+            if (message && message.body) {
+                console.log(`📥 Received message in thread ${message.threadID}: ${message.body}`);
                 callback(message);
-            } catch (error) {
-                console.error('❌ Error in message callback:', error);
             }
-        });
-    }
+        };
 
-    async getUserInfo(userID) {
-        if (!this.api) {
-            throw new Error('Facebook API not initialized');
-        }
-
-        try {
-            return new Promise((resolve, reject) => {
-                this.api.getUserInfo(userID, (err, info) => {
-                    if (err) {
-                        console.error('❌ Error getting user info:', err);
-                        // Return basic info if detailed info fails
-                        resolve({
-                            name: 'User',
-                            firstName: 'User',
-                            vanity: userID,
-                            profileUrl: `https://facebook.com/${userID}`
-                        });
-                        return;
-                    }
-                    resolve(info[userID]);
-                });
-            });
-        } catch (error) {
-            console.error('❌ Error in getUserInfo:', error);
-            // Return basic info on error
-            return {
-                name: 'User',
-                firstName: 'User',
-                vanity: userID,
-                profileUrl: `https://facebook.com/${userID}`
-            };
-        }
-    }
-
-    isGroupChat(threadID) {
-        return threadID.toString().length > 15;
+        this.api.listen(listenCallback);
     }
 }
 

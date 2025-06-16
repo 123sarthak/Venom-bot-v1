@@ -1,7 +1,10 @@
 module.exports = {
     // Bot Configuration
-    PREFIX: process.env.PREFIX || '!',
+    PREFIX: '!',
     ADMIN_IDS: process.env.ADMIN_IDS ? process.env.ADMIN_IDS.split(',') : [],
+    COMMAND_COOLDOWN: 2000, // 2 seconds
+    MAX_MESSAGE_LENGTH: 2000,
+    DEFAULT_LANGUAGE: 'en',
     
     // Bot Information
     BOT_INFO: {
