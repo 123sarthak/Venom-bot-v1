@@ -1,4 +1,5 @@
-const login = require('facebook-chat-api');
+const login = require("@dongdev/fca-unofficial");
+
 const fs = require('fs-extra');
 const qrcode = require('qrcode-terminal');
 const path = require('path');
