@@ -1,7 +1,7 @@
 const { BOT_INFO, COMMAND_CATEGORIES, TEXT_STYLES, ADMIN_IDS } = require('../config/botConfig');
 const infoCommands = require('../commands/info');
 const adminCommands = require('../commands/admin');
-const { formatText } = require('../utils/textFormatter');
+const { formatText, createInfoMessage } = require('../utils/textFormatter');
 
 // Combine all commands
 const commands = {
@@ -13,6 +13,7 @@ class CommandHandler {
     constructor() {
         this.commands = new Map();
         this.categories = new Map();
+        this.adminIds = process.env.ADMIN_IDS ? process.env.ADMIN_IDS.split(',') : [];
         this.initializeCategories();
         this.registerDefaultCommands();
     }
@@ -55,7 +56,7 @@ class CommandHandler {
             return formatText(`❌ Unknown command "${command}". Use ${TEXT_STYLES.COMMAND}help to see available commands.`);
         }
 
-        if (commandInfo.isAdmin && !ADMIN_IDS.includes(senderId.toString())) {
+        if (commandInfo.isAdmin && !this.adminIds.includes(senderId.toString())) {
             return formatText("⛔ You don't have permission to use this command.");
         }
 
@@ -134,7 +135,11 @@ ${BOT_INFO.features.map(feature => `• ${feature}`).join('\n')}
 ║ • ${TEXT_STYLES.COMMAND}download - Download videos           ║
 ╚════════════════════════════════════════════════════════════╝
 
-💫 𝗘𝗻𝗷𝗼𝘆 𝘂𝘀𝗶𝗻𝗴 𝘁𝗵𝗲 𝗯��𝘁! 💫`);
+💫 𝗘𝗻𝗷𝗼𝘆 𝘂𝘀𝗶𝗻𝗴 𝘁𝗵𝗲 𝗯𝗼𝘁! 💫`);
+    }
+
+    getInfoMessage() {
+        return createInfoMessage(this.adminIds);
     }
 }
 

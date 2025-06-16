@@ -1,72 +1,88 @@
-const TEXT_STYLES = {
-    BOLD: '*',
-    ITALIC: '_',
-    CODE: '`',
-    STRIKETHROUGH: '~',
-    MONOSPACE: '```'
+const { TEXT_STYLES } = require('../config/botConfig');
+
+const VENOM_ASCII_ART = `
+██╗   ██╗███████╗███╗   ██╗ ██████╗ ███╗   ███╗
+██║   ██║██╔════╝████╗  ██║██╔═══██╗████╗ ████║
+██║   ██║█████╗  ██╔██╗ ██║██║   ██║██╔████╔██║
+╚██╗ ██╔╝██╔══╝  ██║╚██╗██║██║   ██║██║╚██╔╝██║
+ ╚████╔╝ ███████╗██║ ╚████║╚██████╔╝██║ ╚═╝ ██║
+  ╚═══╝  ╚══════╝╚═╝  ╚═══╝ ╚═════╝ ╚═╝     ╚═╝
+`;
+
+const DEVELOPER_INFO = {
+    name: "Sarthak",
+    role: "Full Stack Developer",
+    github: "github.com/123sarthak",
+    skills: ["JavaScript", "Node.js", "React", "Python", "SQL"],
+    motto: "Code, Create, Innovate"
 };
 
-function formatText(text, style = '') {
-    if (!text) return '';
-    
-    // Handle different style combinations
-    switch (style.toLowerCase()) {
-        case 'bold':
-            return `${TEXT_STYLES.BOLD}${text}${TEXT_STYLES.BOLD}`;
-        case 'italic':
-            return `${TEXT_STYLES.ITALIC}${text}${TEXT_STYLES.ITALIC}`;
-        case 'code':
-            return `${TEXT_STYLES.CODE}${text}${TEXT_STYLES.CODE}`;
-        case 'strikethrough':
-            return `${TEXT_STYLES.STRIKETHROUGH}${text}${TEXT_STYLES.STRIKETHROUGH}`;
-        case 'monospace':
-            return `${TEXT_STYLES.MONOSPACE}${text}${TEXT_STYLES.MONOSPACE}`;
-        case 'bold-italic':
-            return `${TEXT_STYLES.BOLD}${TEXT_STYLES.ITALIC}${text}${TEXT_STYLES.ITALIC}${TEXT_STYLES.BOLD}`;
-        case 'bold-code':
-            return `${TEXT_STYLES.BOLD}${TEXT_STYLES.CODE}${text}${TEXT_STYLES.CODE}${TEXT_STYLES.BOLD}`;
+function formatText(text, style) {
+    switch (style) {
+        case TEXT_STYLES.BOLD:
+            return `*${text}*`;
+        case TEXT_STYLES.ITALIC:
+            return `_${text}_`;
+        case TEXT_STYLES.CODE:
+            return `\`${text}\``;
+        case TEXT_STYLES.HEADER:
+            return `📌 ${text}`;
+        case TEXT_STYLES.SUBHEADER:
+            return `➡️ ${text}`;
+        case TEXT_STYLES.SUCCESS:
+            return `✅ ${text}`;
+        case TEXT_STYLES.ERROR:
+            return `❌ ${text}`;
+        case TEXT_STYLES.WARNING:
+            return `⚠️ ${text}`;
+        case TEXT_STYLES.INFO:
+            return `ℹ️ ${text}`;
+        case TEXT_STYLES.DEV:
+            return `👨‍💻 ${text}`;
+        case TEXT_STYLES.ADMIN:
+            return `👑 ${text}`;
         default:
             return text;
     }
 }
 
-function formatHelpText(command, description, usage = '', example = '') {
-    let text = `${TEXT_STYLES.BOLD}${command}${TEXT_STYLES.BOLD}\n`;
-    text += `${TEXT_STYLES.ITALIC}${description}${TEXT_STYLES.ITALIC}\n`;
+function createInfoMessage(adminIds) {
+    const { name, role, github, skills, motto } = DEVELOPER_INFO;
     
-    if (usage) {
-        text += `Usage: ${TEXT_STYLES.CODE}${usage}${TEXT_STYLES.CODE}\n`;
-    }
-    
-    if (example) {
-        text += `Example: ${TEXT_STYLES.CODE}${example}${TEXT_STYLES.CODE}\n`;
-    }
-    
-    return text;
-}
+    return `${VENOM_ASCII_ART}
 
-function formatError(message) {
-    return `${TEXT_STYLES.BOLD}❌ Error:${TEXT_STYLES.BOLD} ${message}`;
-}
+${formatText('Developer Information', TEXT_STYLES.HEADER)}
+${formatText('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', TEXT_STYLES.CODE)}
 
-function formatSuccess(message) {
-    return `${TEXT_STYLES.BOLD}✅ Success:${TEXT_STYLES.BOLD} ${message}`;
-}
+${formatText('Name', TEXT_STYLES.SUBHEADER)}: ${formatText(name, TEXT_STYLES.BOLD)}
+${formatText('Role', TEXT_STYLES.SUBHEADER)}: ${formatText(role, TEXT_STYLES.ITALIC)}
+${formatText('GitHub', TEXT_STYLES.SUBHEADER)}: ${formatText(github, TEXT_STYLES.CODE)}
+${formatText('Motto', TEXT_STYLES.SUBHEADER)}: ${formatText(motto, TEXT_STYLES.ITALIC)}
 
-function formatWarning(message) {
-    return `${TEXT_STYLES.BOLD}⚠️ Warning:${TEXT_STYLES.BOLD} ${message}`;
-}
+${formatText('Skills', TEXT_STYLES.SUBHEADER)}:
+${skills.map(skill => `  • ${formatText(skill, TEXT_STYLES.CODE)}`).join('\n')}
 
-function formatInfo(message) {
-    return `${TEXT_STYLES.BOLD}ℹ️ Info:${TEXT_STYLES.BOLD} ${message}`;
+${formatText('Bot Information', TEXT_STYLES.HEADER)}
+${formatText('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', TEXT_STYLES.CODE)}
+
+${formatText('Version', TEXT_STYLES.SUBHEADER)}: ${formatText('1.0.0', TEXT_STYLES.CODE)}
+${formatText('Prefix', TEXT_STYLES.SUBHEADER)}: ${formatText('!', TEXT_STYLES.CODE)}
+${formatText('Commands', TEXT_STYLES.SUBHEADER)}: ${formatText('!help', TEXT_STYLES.CODE)}
+
+${formatText('Admin Information', TEXT_STYLES.HEADER)}
+${formatText('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', TEXT_STYLES.CODE)}
+
+${formatText('Total Admins', TEXT_STYLES.SUBHEADER)}: ${formatText(adminIds.length.toString(), TEXT_STYLES.CODE)}
+${formatText('Admin IDs', TEXT_STYLES.SUBHEADER)}:
+${adminIds.map(id => `  • ${formatText(id, TEXT_STYLES.CODE)}`).join('\n')}
+
+${formatText('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', TEXT_STYLES.CODE)}
+${formatText('Made with ❤️ by Sarthak', TEXT_STYLES.DEV)}`;
 }
 
 module.exports = {
     formatText,
-    formatHelpText,
-    formatError,
-    formatSuccess,
-    formatWarning,
-    formatInfo,
-    TEXT_STYLES
+    createInfoMessage,
+    VENOM_ASCII_ART,
+    DEVELOPER_INFO
 }; 

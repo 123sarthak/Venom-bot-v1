@@ -27,13 +27,16 @@ module.exports = {
 
     // Stylish Text Styles
     TEXT_STYLES: {
-        BOLD: "𝗕𝗼𝗹𝗱",
-        ITALIC: "𝘪𝘵𝘢𝘭𝘪𝘤",
-        UNDERLINE: "𝘶𝘯𝘥𝘦𝘳𝘭𝘪𝘯𝘦",
-        BOT_NAME: "ꜱᴀʀᴛʜᴀᴋ'ꜱ ʙᴏᴛ",
-        COMMAND: "!ᴄᴏᴍᴍᴀɴᴅ",
-        ADMIN: "👑 ᴀᴅᴍɪɴ",
-        GAME: "🎮 ɢᴀᴍᴇ",
-        UTILITY: "��️ ᴜᴛɪʟɪᴛʏ"
+        BOLD: 'bold',
+        ITALIC: 'italic',
+        CODE: 'code',
+        HEADER: 'header',
+        SUBHEADER: 'subheader',
+        SUCCESS: 'success',
+        ERROR: 'error',
+        WARNING: 'warning',
+        INFO: 'info',
+        DEV: 'dev',
+        ADMIN: 'admin'
     }
 }; 
