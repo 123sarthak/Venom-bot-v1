@@ -1,4 +1,4 @@
-const { formatText, formatHelpText } = require('../utils/textFormatter');
+const { formatText, formatHelpText, createInfoMessage } = require('../utils/textFormatter');
 const { TEXT_STYLES } = require('../config/botConfig');
 
 const commands = {
@@ -86,67 +86,10 @@ const commands = {
     },
 
     info: {
-        description: 'Shows information about the developer',
+        description: 'Shows information about the developer and bot',
         usage: '!info',
         execute: async () => {
-            const asciiArt = `
-    ███████╗ █████╗ ██████╗ ████████╗██╗  ██╗ █████╗ ██╗  ██╗
-    ██╔════╝██╔══██╗██╔══██╗╚══██╔══╝██║  ██║██╔══██╗██║ ██╔╝
-    ███████╗███████║██████╔╝   ██║   ███████║███████║█████╔╝ 
-    ╚════██║██╔══██║██╔══██╗   ██║   ██╔══██║██╔══██║██╔═██╗ 
-    ███████║██║  ██║██║  ██║   ██║   ██║  ██║██║  ██║██║  ██╗
-    ╚══════╝╚═╝  ╚═╝╚═╝  ╚═╝   ╚═╝   ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═╝
-    ██████╗  ██████╗ ████████╗
-    ██╔══██╗██╔═══██╗╚══██╔══╝
-    ██████╔╝██║   ██║   ██║   
-    ██╔══██╗██║   ██║   ██║   
-    ██████╔╝╚██████╔╝   ██║   
-    ╚═════╝  ╚═════╝    ╚═╝   
-            `;
-
-            const infoText = formatText(`${asciiArt}
-╔════════════════════════════════════════════════════════════╗
-║                    𝙳𝙴𝚅𝙴𝙻𝙾𝙿𝙴𝚁 𝙸𝙽𝙵𝙾                    ║
-╚════════════════════════════════════════════════════════════╝
-
-👨‍💻 *Developer Information*
-
-• 𝗡𝗮𝗺𝗲: Sarthak
-• 𝗥𝗼𝗹𝗲: Bot Developer
-• 𝗦𝗸𝗶𝗹𝗹𝘀: JavaScript, Node.js, API Integration
-
-🎯 *About Me*
-I am a passionate developer who loves creating
-useful and fun bots for Facebook Messenger.
-This bot is one of my projects to help make
-group chats more interactive and enjoyable!
-
-🛠️ *Technologies Used*
-• Node.js
-• Facebook Chat API
-• Express.js
-• SQLite Database
-
-🌟 *Bot Features*
-• Command System with Prefix
-• Tic Tac Toe Game
-• Video Downloader
-• Admin Commands
-• Group Chat Support
-
-📱 *Connect With Me*
-• GitHub: github.com/123sarthak
-• Facebook: Sarthak
-
-💫 *Special Thanks*
-Thanks to everyone who uses and supports
-this bot! Your feedback helps make it better.
-
-╔════════════════════════════════════════════════════════════╗
-║                    𝙱𝙾𝚃 𝚅𝙴𝚁𝚂𝙸𝙾𝙽 𝟷.𝟶.𝟶                    ║
-╚════════════════════════════════════════════════════════════╝`);
-
-            return infoText;
+            return createInfoMessage(process.env.ADMIN_IDS ? process.env.ADMIN_IDS.split(',') : []);
         }
     }
 };

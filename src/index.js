@@ -33,6 +33,13 @@ commandHandler.registerCommand('about',
     COMMAND_CATEGORIES.GENERAL
 );
 
+commandHandler.registerCommand('info',
+    async (senderId) => {
+        return commandHandler.getInfoMessage();
+    },
+    COMMAND_CATEGORIES.GENERAL
+);
+
 commandHandler.registerCommand('tictactoe',
     async (args, { senderId }) => {
         if (args && args.length > 0) {
