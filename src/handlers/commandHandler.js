@@ -1,4 +1,12 @@
 const { BOT_INFO, COMMAND_CATEGORIES, TEXT_STYLES, ADMIN_IDS } = require('../config/botConfig');
+const infoCommands = require('../commands/info');
+const adminCommands = require('../commands/admin');
+
+// Combine all commands
+const commands = {
+    ...infoCommands,
+    ...adminCommands
+};
 
 class CommandHandler {
     constructor() {
@@ -113,4 +121,29 @@ ${BOT_INFO.features.map(feature => `• ${feature}`).join('\n')}
     }
 }
 
-module.exports = { CommandHandler }; 
+async function handleCommand(command, args, context) {
+    const { threadID, senderID, isAdmin, api } = context;
+
+    // Add api to context for commands that need it
+    const commandContext = { ...context, api };
+
+    // Check if command exists
+    if (!commands[command]) {
+        return null; // Command not found
+    }
+
+    try {
+        // Execute command
+        const response = await commands[command].execute(args, commandContext);
+        return response;
+    } catch (error) {
+        console.error(`Error executing command ${command}:`, error);
+        return '❌ An error occurred while executing the command.';
+    }
+}
+
+module.exports = {
+    handleCommand,
+    commands,
+    CommandHandler
+}; 
