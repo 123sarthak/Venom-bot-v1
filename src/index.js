@@ -4,15 +4,73 @@ const bodyParser = require('body-parser');
 const axios = require('axios');
 const { TicTacToe } = require('./games/tictactoe');
 const { VideoDownloader } = require('./utils/videoDownloader');
+const { CommandHandler } = require('./handlers/commandHandler');
+const { COMMAND_CATEGORIES, TEXT_STYLES } = require('./config/botConfig');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const PREFIX = process.env.PREFIX || '!';
 const PAGE_ACCESS_TOKEN = process.env.PAGE_ACCESS_TOKEN;
 
-// Initialize games and utilities
+// Initialize handlers and utilities
+const commandHandler = new CommandHandler();
 const ticTacToe = new TicTacToe();
 const videoDownloader = new VideoDownloader();
+
+// Register commands
+commandHandler.registerCommand('help', 
+    async (senderId) => commandHandler.getHelpMessage(),
+    COMMAND_CATEGORIES.GENERAL
+);
+
+commandHandler.registerCommand('about',
+    async (senderId) => commandHandler.getAboutMessage(),
+    COMMAND_CATEGORIES.GENERAL
+);
+
+commandHandler.registerCommand('tictactoe',
+    async (senderId, args) => {
+        if (args) {
+            return ticTacToe.makeMove(senderId, args);
+        }
+        return ticTacToe.startGame(senderId);
+    },
+    COMMAND_CATEGORIES.GAMES
+);
+
+commandHandler.registerCommand('download',
+    async (senderId, args) => {
+        if (!args) {
+            return 'Please provide a video URL to download.';
+        }
+        return videoDownloader.downloadVideo(args);
+    },
+    COMMAND_CATEGORIES.UTILITY
+);
+
+// Admin commands
+commandHandler.registerCommand('broadcast',
+    async (senderId, args) => {
+        if (!args) {
+            return 'Please provide a message to broadcast.';
+        }
+        // Implement broadcast functionality here
+        return 'Broadcast message sent to all users.';
+    },
+    COMMAND_CATEGORIES.ADMIN,
+    true
+);
+
+commandHandler.registerCommand('stats',
+    async (senderId) => {
+        // Implement stats functionality here
+        return '📊 Bot Statistics:\n' +
+               '• Total Users: 0\n' +
+               '• Active Games: 0\n' +
+               '• Total Downloads: 0';
+    },
+    COMMAND_CATEGORIES.ADMIN,
+    true
+);
 
 // Middleware
 app.use(bodyParser.json());
@@ -23,7 +81,7 @@ app.get('/', (req, res) => {
     res.send(`
         <html>
             <head>
-                <title>Sarthak's Messenger Bot</title>
+                <title>${TEXT_STYLES.BOT_NAME}</title>
                 <style>
                     body {
                         font-family: Arial, sans-serif;
@@ -31,32 +89,61 @@ app.get('/', (req, res) => {
                         margin: 0 auto;
                         padding: 20px;
                         text-align: center;
+                        background: #f0f2f5;
                     }
-                    h1 { color: #1877F2; }
+                    h1 { 
+                        color: #1877F2;
+                        font-size: 2.5em;
+                        margin-bottom: 20px;
+                    }
                     .status { 
                         color: #4CAF50;
                         font-weight: bold;
                         margin: 20px 0;
+                        padding: 10px;
+                        background: white;
+                        border-radius: 8px;
+                        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
                     }
                     .commands {
                         text-align: left;
-                        background: #f5f5f5;
+                        background: white;
                         padding: 20px;
+                        border-radius: 8px;
+                        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                    }
+                    .category {
+                        margin: 15px 0;
+                        padding: 10px;
+                        background: #f8f9fa;
                         border-radius: 5px;
+                    }
+                    .admin {
+                        color: #e74c3c;
+                        font-weight: bold;
                     }
                 </style>
             </head>
             <body>
-                <h1>🤖 Sarthak's Messenger Bot</h1>
+                <h1>${TEXT_STYLES.BOT_NAME}</h1>
                 <div class="status">✅ Bot is running!</div>
                 <div class="commands">
                     <h2>Available Commands:</h2>
-                    <ul>
-                        <li><code>${PREFIX}help</code> - Show all commands</li>
-                        <li><code>${PREFIX}tictactoe</code> - Start a new Tic Tac Toe game</li>
-                        <li><code>${PREFIX}download &lt;url&gt;</code> - Download video from URL</li>
-                        <li><code>${PREFIX}about</code> - About Sarthak's Bot</li>
-                    </ul>
+                    ${Array.from(commandHandler.categories.entries())
+                        .map(([category, commands]) => `
+                            <div class="category">
+                                <h3>${category}</h3>
+                                <ul>
+                                    ${Array.from(commands.entries())
+                                        .map(([cmd, info]) => `
+                                            <li>
+                                                <code>!${cmd}</code>
+                                                ${info.isAdmin ? '<span class="admin">👑 Admin</span>' : ''}
+                                            </li>
+                                        `).join('')}
+                                </ul>
+                            </div>
+                        `).join('')}
                 </div>
                 <p>Server is running on port ${PORT}</p>
             </body>
@@ -64,18 +151,7 @@ app.get('/', (req, res) => {
     `);
 });
 
-// Error handling middleware
-app.use((err, req, res, next) => {
-    console.error('Server Error:', err);
-    res.status(500).send('Something went wrong!');
-});
-
-// 404 handler
-app.use((req, res) => {
-    res.status(404).send('Not Found');
-});
-
-// Verify webhook
+// Webhook verification
 app.get('/webhook', (req, res) => {
     const VERIFY_TOKEN = process.env.VERIFY_TOKEN;
     const mode = req.query['hub.mode'];
@@ -101,47 +177,17 @@ app.post('/webhook', async (req, res) => {
                     const senderId = event.sender.id;
                     const message = event.message.text;
 
+                    // Handle prefix-only message
+                    if (message === '!') {
+                        await sendMessage(senderId, commandHandler.getAboutMessage());
+                        continue;
+                    }
+
                     // Handle commands
-                    if (message.startsWith(PREFIX)) {
-                        const command = message.slice(PREFIX.length).toLowerCase().split(' ')[0];
-                        const args = message.slice(PREFIX.length + command.length).trim();
-
-                        switch (command) {
-                            case 'help':
-                                await sendMessage(senderId, `🤖 *Sarthak's Bot Commands*\n\n` +
-                                    `${PREFIX}help - Show this help message\n` +
-                                    `${PREFIX}tictactoe - Start a new Tic Tac Toe game\n` +
-                                    `${PREFIX}download <url> - Download video from URL\n` +
-                                    `${PREFIX}about - About Sarthak's Bot`);
-                                break;
-
-                            case 'tictactoe':
-                                const gameResponse = await ticTacToe.startGame(senderId);
-                                await sendMessage(senderId, gameResponse);
-                                break;
-
-                            case 'download':
-                                if (!args) {
-                                    await sendMessage(senderId, 'Please provide a video URL to download.');
-                                    return;
-                                }
-                                const downloadResponse = await videoDownloader.downloadVideo(args);
-                                await sendMessage(senderId, downloadResponse);
-                                break;
-
-                            case 'about':
-                                await sendMessage(senderId, "🤖 *Sarthak's Bot*\n\n" +
-                                    "A powerful Facebook Messenger bot created by Sarthak\n" +
-                                    "Features:\n" +
-                                    "• Tic Tac Toe Game\n" +
-                                    "• Video Downloader\n" +
-                                    "• Command Prefix System\n\n" +
-                                    "Use !help to see all commands!");
-                                break;
-
-                            default:
-                                await sendMessage(senderId, 'Unknown command. Use !help to see available commands.');
-                        }
+                    if (message.startsWith('!')) {
+                        const [command, ...args] = message.slice(1).split(' ');
+                        const response = await commandHandler.handleCommand(senderId, command, args.join(' '));
+                        await sendMessage(senderId, response);
                     }
                 }
             }
@@ -166,10 +212,20 @@ async function sendMessage(recipientId, message) {
     }
 }
 
+// Error handling middleware
+app.use((err, req, res, next) => {
+    console.error('Server Error:', err);
+    res.status(500).send('Something went wrong!');
+});
+
+// 404 handler
+app.use((req, res) => {
+    res.status(404).send('Not Found');
+});
+
 // Start server with error handling
 app.listen(PORT, () => {
-    console.log(`🤖 Sarthak's Bot is running on port ${PORT}`);
-    console.log(`Using command prefix: ${PREFIX}`);
+    console.log(`🤖 ${TEXT_STYLES.BOT_NAME} is running on port ${PORT}`);
     console.log(`Visit http://localhost:${PORT} to see the bot status`);
 }).on('error', (err) => {
     console.error('Failed to start server:', err);
