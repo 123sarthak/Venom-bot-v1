@@ -1,5 +1,3 @@
-const { formatText } = require('../utils/textFormatter');
-
 class InfoCommand {
     constructor() {
         this.name = 'info';
@@ -31,7 +29,7 @@ class InfoCommand {
 ꜱᴀʀᴛʜᴀᴋ'ꜱ ʙᴏᴛ v1.0.0
 Created by Sarthak`;
 
-        return formatText(infoText);
+        return infoText;
     }
 }
 
