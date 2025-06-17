@@ -1,4 +1,5 @@
 const VideoDownloader = require('../utils/videoDownloader');
+const fs = require('fs');
 
 class DownloadCommand {
     constructor() {
@@ -8,6 +9,9 @@ class DownloadCommand {
     }
 
     async execute(args, context) {
+        const { threadID } = context;
+        const fb = context.fb || global.fb; // fallback for backward compatibility
+
         if (args.length === 0) {
             return `❌ **Usage:** !download <url>
             
@@ -53,26 +57,19 @@ class DownloadCommand {
         }
 
         try {
-            // Send initial response
-            const platformEmoji = {
-                'youtube': '🎥',
-                'facebook': '📘',
-                'instagram': '📷'
-            };
-
-            const initialResponse = `⏳ **Download Started!**
-            
-**🔗 URL:** ${url}
-**📱 Platform:** ${platform.charAt(0).toUpperCase() + platform.slice(1)} ${platformEmoji[platform]}
-**⏱️ Status:** Processing...
-
-**💡 Please wait while I download your video...**`;
-
             // Start the download
             const result = await this.videoDownloader.downloadVideo(url, platform);
-            
             if (result.success) {
-                return result.message;
+                // Try to send the video as an attachment
+                try {
+                    await fb.sendMessage(threadID, {
+                        body: `✅ Here is your downloaded video from ${platform.charAt(0).toUpperCase() + platform.slice(1)}!`,
+                        attachment: fs.createReadStream(result.filePath)
+                    });
+                    return null; // Already sent as attachment
+                } catch (err) {
+                    return `✅ Video downloaded, but failed to send as attachment (maybe too large for Messenger).\n\n**File:** ${result.fileName}\n**Path:** ${result.filePath}\n\nTry downloading a smaller/shorter video.`;
+                }
             } else {
                 throw new Error('Download failed');
             }
@@ -82,7 +79,7 @@ class DownloadCommand {
             let errorMessage = `❌ **Download Failed!**
             
 **🔗 URL:** ${url}
-**📱 Platform:** ${platform.charAt(0).toUpperCase() + platform.slice(1)}
+**📱 Platform:** ${platform ? (platform.charAt(0).toUpperCase() + platform.slice(1)) : 'Unknown'}
 **❌ Error:** ${error.message}`;
 
             // Add platform-specific troubleshooting tips
