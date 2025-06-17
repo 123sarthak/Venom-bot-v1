@@ -1,4 +1,4 @@
-const ytdl = require('ytdl-core');
+const play = require('play-dl');
 const axios = require('axios');
 const fs = require('fs-extra');
 const path = require('path');
@@ -37,34 +37,36 @@ class VideoDownloader {
     }
 
     async downloadYouTube(url, filePath, fileName) {
-        return new Promise((resolve, reject) => {
-            const video = ytdl(url, {
-                quality: 'highest',
-                filter: 'audioandvideo'
-            });
-
+        try {
+            // Use play-dl to get video stream
+            const stream = await play.stream(url, { quality: 137 }); // 137 = 1080p
+            
             const writeStream = fs.createWriteStream(filePath);
             
-            video.pipe(writeStream);
+            return new Promise((resolve, reject) => {
+                stream.stream.pipe(writeStream);
 
-            writeStream.on('finish', () => {
-                resolve({
-                    success: true,
-                    filePath: filePath,
-                    fileName: fileName,
-                    platform: 'YouTube',
-                    message: `✅ **YouTube video downloaded successfully!**\n\n📁 **File:** ${fileName}\n📱 **Platform:** YouTube\n💾 **Size:** ${this.getFileSize(filePath)}`
+                writeStream.on('finish', () => {
+                    resolve({
+                        success: true,
+                        filePath: filePath,
+                        fileName: fileName,
+                        platform: 'YouTube',
+                        message: `✅ **YouTube video downloaded successfully!**\n\n📁 **File:** ${fileName}\n📱 **Platform:** YouTube\n💾 **Size:** ${this.getFileSize(filePath)}`
+                    });
+                });
+
+                writeStream.on('error', (error) => {
+                    reject(new Error(`Failed to write YouTube video: ${error.message}`));
+                });
+
+                stream.stream.on('error', (error) => {
+                    reject(new Error(`Failed to download YouTube video: ${error.message}`));
                 });
             });
-
-            writeStream.on('error', (error) => {
-                reject(new Error(`Failed to write YouTube video: ${error.message}`));
-            });
-
-            video.on('error', (error) => {
-                reject(new Error(`Failed to download YouTube video: ${error.message}`));
-            });
-        });
+        } catch (error) {
+            throw new Error(`YouTube download failed: ${error.message}`);
+        }
     }
 
     async downloadFacebook(url, filePath, fileName) {
@@ -220,9 +222,21 @@ class VideoDownloader {
     }
 
     detectPlatform(url) {
-        if (ytdl.validateURL(url)) {
-            return 'youtube';
-        } else if (url.includes('facebook.com') || url.includes('fb.watch')) {
+        // YouTube URL patterns
+        const youtubePatterns = [
+            /youtube\.com\/watch\?v=/,
+            /youtu\.be\//,
+            /youtube\.com\/embed\//,
+            /youtube\.com\/v\//
+        ];
+        
+        for (const pattern of youtubePatterns) {
+            if (pattern.test(url)) {
+                return 'youtube';
+            }
+        }
+        
+        if (url.includes('facebook.com') || url.includes('fb.watch')) {
             return 'facebook';
         } else if (url.includes('instagram.com')) {
             return 'instagram';
