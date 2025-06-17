@@ -62,11 +62,7 @@ async function handleCommand(message) {
 • !info - Bot information
 • !tictactoe - Play a game
 • !about - About the bot
-• !download <url> - Download videos
-
-**💭 Example:** !help
-
-**🎮 Try:** !tictactoe to start a fun game!`;
+• !download <url> - Download videos`;
 
         await fb.sendMessage(threadID, defaultMessage);
         return;

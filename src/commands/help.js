@@ -7,45 +7,40 @@ class HelpCommand {
     }
 
     async execute(args, context) {
-        const helpText = `🎯 **Available Commands**
+        const helpText = `✨ *Sarthak's Bot Help* ✨
 
-**🎮 Game Commands:**
-• ${PREFIX}tictactoe - Start a new Tic Tac Toe game
-• ${PREFIX}tictactoe <position> - Make a move (1-9)
+🟢 *General Commands:*
+• **${PREFIX}help** — Show this help message
+• **${PREFIX}info** — Bot information
+• **${PREFIX}about** — About the bot
+• **${PREFIX}stats** — Bot statistics
 
-**📋 General Commands:**
-• ${PREFIX}help - Show this help message
-• ${PREFIX}info - Show bot information
-• ${PREFIX}about - About the bot and developer
-• ${PREFIX}stats - Show bot statistics
+🎮 *Game Commands:*
+• **${PREFIX}tictactoe** — Start a new Tic Tac Toe game
+• **${PREFIX}tictactoe <position>** — Make a move (1-9)
 
-**🛠️ Utility Commands:**
-• ${PREFIX}download <url> - Download video from YouTube, Facebook, or Instagram
+🛠️ *Utility Commands:*
+• **${PREFIX}download <url>** — Download video from YouTube, Facebook, or Instagram
 
-**👑 Admin Commands:**
-• ${PREFIX}broadcast <message> - Send message to all groups
-• ${PREFIX}addgroup - Add current group to bot's list
-• ${PREFIX}removegroup - Remove current group from bot's list
-• ${PREFIX}listgroups - List all groups where bot is active
+👑 *Admin Commands:*
+• **${PREFIX}broadcast <message>** — Send message to all groups
+• **${PREFIX}addgroup** — Add current group to bot's list
+• **${PREFIX}removegroup** — Remove current group from bot's list
+• **${PREFIX}listgroups** — List all groups where bot is active
 
-**💡 Usage:**
-Use ${PREFIX}<command> to execute any command.
-Example: ${PREFIX}tictactoe to start a game
+💡 *Examples:*
+- **${PREFIX}tictactoe**
+- **${PREFIX}download https://www.youtube.com/watch?v=dQw4w9WgXcQ**
+- **${PREFIX}about**
 
-**🎮 Tic Tac Toe Positions:**
-1 | 2 | 3
+🎲 *Tic Tac Toe Board:*
+1️⃣ | 2️⃣ | 3️⃣
 ─────────
-4 | 5 | 6
+4️⃣ | 5️⃣ | 6️⃣
 ─────────
-7 | 8 | 9
+7️⃣ | 8️⃣ | 9️⃣
 
-**📥 Video Download Examples:**
-• YouTube: ${PREFIX}download https://www.youtube.com/watch?v=dQw4w9WgXcQ
-• Facebook: ${PREFIX}download https://www.facebook.com/watch?v=123456789
-• Instagram: ${PREFIX}download https://www.instagram.com/p/ABC123/
-
-Sarthak's Bot v1.0.0`;
-
+🤖 *Enjoy using Sarthak's Bot!*`;
         return helpText;
     }
 }

@@ -1,5 +1,9 @@
 const VideoDownloader = require('../utils/videoDownloader');
 const fs = require('fs');
+const path = require('path');
+
+// Messenger's max file size for attachments (approx 25MB)
+const MAX_MESSENGER_FILE_SIZE = 25 * 1024 * 1024;
 
 class DownloadCommand {
     constructor() {
@@ -56,11 +60,25 @@ class DownloadCommand {
 • Other platforms`;
         }
 
+        // 1. Notify user that download is starting
+        await fb.sendMessage(threadID, `⏳ Downloading your video from ${platform.charAt(0).toUpperCase() + platform.slice(1)}... Please wait!`);
+
         try {
-            // Start the download
+            // 2. Start the download
             const result = await this.videoDownloader.downloadVideo(url, platform);
             if (result.success) {
-                // Try to send the video as an attachment
+                // 3. Check file size
+                const stats = fs.statSync(result.filePath);
+                if (stats.size > MAX_MESSENGER_FILE_SIZE) {
+                    // File too large for Messenger
+                    return `✅ Video downloaded, but it's too large to send on Messenger (limit: 25MB).
+
+**File:** ${result.fileName}
+**Size:** ${(stats.size / (1024*1024)).toFixed(2)} MB
+
+If you want to serve files via HTTP, let the developer know!`;
+                }
+                // 4. Try to send the video as an attachment
                 try {
                     await fb.sendMessage(threadID, {
                         body: `✅ Here is your downloaded video from ${platform.charAt(0).toUpperCase() + platform.slice(1)}!`,
