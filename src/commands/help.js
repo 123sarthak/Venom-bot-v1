@@ -1,3 +1,5 @@
+const { PREFIX } = require('../config/botConfig');
+
 class HelpCommand {
     constructor() {
         this.name = 'help';
@@ -8,27 +10,27 @@ class HelpCommand {
         const helpText = `🎯 **Available Commands**
 
 **🎮 Game Commands:**
-• !tictactoe - Start a new Tic Tac Toe game
-• !tictactoe <position> - Make a move (1-9)
+• ${PREFIX}tictactoe - Start a new Tic Tac Toe game
+• ${PREFIX}tictactoe <position> - Make a move (1-9)
 
 **📋 General Commands:**
-• !help - Show this help message
-• !info - Show bot information
-• !about - About the bot and developer
-• !stats - Show bot statistics
+• ${PREFIX}help - Show this help message
+• ${PREFIX}info - Show bot information
+• ${PREFIX}about - About the bot and developer
+• ${PREFIX}stats - Show bot statistics
 
 **🛠️ Utility Commands:**
-• !download <url> - Download video from YouTube, Facebook, or Instagram
+• ${PREFIX}download <url> - Download video from YouTube, Facebook, or Instagram
 
 **👑 Admin Commands:**
-• !broadcast <message> - Send message to all groups
-• !addgroup - Add current group to bot's list
-• !removegroup - Remove current group from bot's list
-• !listgroups - List all groups where bot is active
+• ${PREFIX}broadcast <message> - Send message to all groups
+• ${PREFIX}addgroup - Add current group to bot's list
+• ${PREFIX}removegroup - Remove current group from bot's list
+• ${PREFIX}listgroups - List all groups where bot is active
 
 **💡 Usage:**
-Use !<command> to execute any command.
-Example: !tictactoe to start a game
+Use ${PREFIX}<command> to execute any command.
+Example: ${PREFIX}tictactoe to start a game
 
 **🎮 Tic Tac Toe Positions:**
 1 | 2 | 3
@@ -38,9 +40,9 @@ Example: !tictactoe to start a game
 7 | 8 | 9
 
 **📥 Video Download Examples:**
-• YouTube: !download https://www.youtube.com/watch?v=dQw4w9WgXcQ
-• Facebook: !download https://www.facebook.com/watch?v=123456789
-• Instagram: !download https://www.instagram.com/p/ABC123/
+• YouTube: ${PREFIX}download https://www.youtube.com/watch?v=dQw4w9WgXcQ
+• Facebook: ${PREFIX}download https://www.facebook.com/watch?v=123456789
+• Instagram: ${PREFIX}download https://www.instagram.com/p/ABC123/
 
 Sarthak's Bot v1.0.0`;
 

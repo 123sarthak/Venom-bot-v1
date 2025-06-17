@@ -130,6 +130,7 @@ async function handleCommand(message) {
         // Send response
         if (response) {
             await fb.sendMessage(threadID, response);
+            return; // Prevent double response or error-after-success
         }
     } catch (error) {
         console.error('Error handling command:', error);
