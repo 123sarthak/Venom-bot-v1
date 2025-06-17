@@ -7,7 +7,7 @@ class HelpCommand {
     async execute(args, context) {
         const helpText = `🎯 **Available Commands**
 
-**�� Game Commands:**
+**🎮 Game Commands:**
 • !tictactoe - Start a new Tic Tac Toe game
 • !tictactoe <position> - Make a move (1-9)
 
@@ -18,7 +18,7 @@ class HelpCommand {
 • !stats - Show bot statistics
 
 **🛠️ Utility Commands:**
-• !download <url> - Download video from URL
+• !download <url> - Download video from YouTube, Facebook, or Instagram
 
 **👑 Admin Commands:**
 • !broadcast <message> - Send message to all groups
@@ -36,6 +36,11 @@ Example: !tictactoe to start a game
 4 | 5 | 6
 ─────────
 7 | 8 | 9
+
+**📥 Video Download Examples:**
+• YouTube: !download https://www.youtube.com/watch?v=dQw4w9WgXcQ
+• Facebook: !download https://www.facebook.com/watch?v=123456789
+• Instagram: !download https://www.instagram.com/p/ABC123/
 
 Sarthak's Bot v1.0.0`;
 

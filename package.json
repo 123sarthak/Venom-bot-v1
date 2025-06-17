@@ -10,14 +10,16 @@
   },
   "dependencies": {
     "@dongdev/fca-unofficial": "^1.0.19",
-    "axios": "^1.6.7",
+    "axios": "^1.10.0",
     "dotenv": "^16.4.5",
     "express": "^4.18.2",
-    "fs-extra": "^11.2.0",
+    "fs-extra": "^11.3.0",
+    "instagram-private-api": "^1.46.1",
     "moment": "^2.30.1",
     "pm2": "^5.3.1",
     "qrcode-terminal": "^0.12.0",
-    "sqlite3": "^5.1.7"
+    "sqlite3": "^5.1.7",
+    "ytdl-core": "^4.11.5"
   },
   "devDependencies": {
     "nodemon": "^3.0.3"

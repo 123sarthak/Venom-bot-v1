@@ -4,6 +4,7 @@ const { formatText } = require('./utils/textFormatter');
 const { PREFIX, ADMIN_IDS } = require('./config/botConfig');
 const TicTacToe = require('./games/tictactoe');
 const WelcomeHandler = require('./handlers/welcomeHandler');
+const VideoDownloader = require('./utils/videoDownloader');
 
 // Initialize Facebook API
 const fb = new FacebookAPI();
@@ -13,6 +14,9 @@ const tictactoe = new TicTacToe();
 
 // Initialize welcome handler
 const welcomeHandler = new WelcomeHandler();
+
+// Initialize video downloader
+const videoDownloader = new VideoDownloader();
 
 // Import all commands
 const InfoCommand = require('./commands/info');
@@ -49,7 +53,7 @@ async function handleCommand(message) {
 
     // If only prefix is used (no command), send default message
     if (!cmd || cmd === '') {
-        const defaultMessage = `🤖 **Command ta lekha babu!** 🤖
+        const defaultMessage = `🤖 **Pura command ta lekh muji!!!!** 🤖
 
 **💡 Usage:** !<command>
 
@@ -58,6 +62,7 @@ async function handleCommand(message) {
 • !info - Bot information
 • !tictactoe - Play a game
 • !about - About the bot
+• !download <url> - Download videos
 
 **💭 Example:** !help
 
@@ -160,6 +165,18 @@ async function handleMessage(message) {
     }
 }
 
+// Cleanup old downloaded files periodically
+function startCleanupScheduler() {
+    setInterval(async () => {
+        try {
+            await videoDownloader.cleanupOldFiles();
+            console.log('🧹 Cleanup completed');
+        } catch (error) {
+            console.error('❌ Cleanup error:', error);
+        }
+    }, 60 * 60 * 1000); // Run every hour
+}
+
 // Start bot
 async function startBot() {
     try {
@@ -170,11 +187,16 @@ async function startBot() {
             process.exit(1);
         }
 
+        // Start cleanup scheduler
+        startCleanupScheduler();
+
         // Start listening for messages
         fb.listen(handleMessage);
         console.log('🤖 Bot is now running with all features!');
         console.log('📋 Available commands: help, info, about, stats, tictactoe, download, broadcast, addgroup, removegroup, listgroups');
         console.log('👋 Welcome/Goodbye messages are active!');
+        console.log('📥 Video downloader is ready for YouTube, Facebook, and Instagram!');
+        console.log('🧹 Automatic cleanup is active (files deleted after 24 hours)');
     } catch (error) {
         console.error('Error starting bot:', error);
         process.exit(1);

@@ -1,21 +1,27 @@
+const VideoDownloader = require('../utils/videoDownloader');
+
 class DownloadCommand {
     constructor() {
         this.name = 'download';
-        this.description = 'Download video from URL';
+        this.description = 'Download video from URL (YouTube, Facebook, Instagram)';
+        this.videoDownloader = new VideoDownloader();
     }
 
     async execute(args, context) {
         if (args.length === 0) {
             return `❌ **Usage:** !download <url>
             
-**💡 Example:** !download https://www.facebook.com/watch?v=123456789
+**💡 Examples:**
+• !download https://www.youtube.com/watch?v=dQw4w9WgXcQ
+• !download https://www.facebook.com/watch?v=123456789
+• !download https://www.instagram.com/p/ABC123/
 
 **📱 Supported Platforms:**
-• Facebook Videos
-• YouTube Videos (coming soon)
-• Instagram Videos (coming soon)
+• 🎥 YouTube Videos
+• 📘 Facebook Videos
+• 📷 Instagram Videos & Reels
 
-**⚠️ Note:** Only Facebook videos are currently supported.`;
+**⚠️ Note:** Videos are downloaded to the bot's server and will be automatically cleaned up after 24 hours.`;
         }
 
         const url = args[0];
@@ -24,34 +30,94 @@ class DownloadCommand {
         if (!this.isValidUrl(url)) {
             return `❌ **Invalid URL!** Please provide a valid video URL.
             
-**💡 Example:** !download https://www.facebook.com/watch?v=123456789`;
+**💡 Examples:**
+• YouTube: https://www.youtube.com/watch?v=dQw4w9WgXcQ
+• Facebook: https://www.facebook.com/watch?v=123456789
+• Instagram: https://www.instagram.com/p/ABC123/`;
         }
 
-        // Check if it's a Facebook video
-        if (!this.isFacebookVideo(url)) {
-            return `❌ **Unsupported Platform!** Currently only Facebook videos are supported.
+        // Detect platform
+        const platform = this.videoDownloader.detectPlatform(url);
+        if (!platform) {
+            return `❌ **Unsupported Platform!** Currently supported platforms:
             
-**📱 Supported:** Facebook Videos
-**🚧 Coming Soon:** YouTube, Instagram`;
+**✅ Supported:**
+• 🎥 YouTube Videos
+• 📘 Facebook Videos  
+• 📷 Instagram Videos & Reels
+
+**❌ Not Supported:**
+• TikTok
+• Twitter
+• Other platforms`;
         }
 
         try {
-            // This would be implemented with actual video downloading logic
-            return `⏳ **Download Started!**
+            // Send initial response
+            const platformEmoji = {
+                'youtube': '🎥',
+                'facebook': '📘',
+                'instagram': '📷'
+            };
+
+            const initialResponse = `⏳ **Download Started!**
             
 **🔗 URL:** ${url}
-**📱 Platform:** Facebook
+**📱 Platform:** ${platform.charAt(0).toUpperCase() + platform.slice(1)} ${platformEmoji[platform]}
 **⏱️ Status:** Processing...
 
-**💡 Note:** Video download feature is under development.
-This is a placeholder response.`;
+**💡 Please wait while I download your video...**`;
+
+            // Start the download
+            const result = await this.videoDownloader.downloadVideo(url, platform);
+            
+            if (result.success) {
+                return result.message;
+            } else {
+                throw new Error('Download failed');
+            }
         } catch (error) {
-            return `❌ **Download Failed!**
+            console.error('Download error:', error);
+            
+            let errorMessage = `❌ **Download Failed!**
             
 **🔗 URL:** ${url}
-**❌ Error:** ${error.message}
+**📱 Platform:** ${platform.charAt(0).toUpperCase() + platform.slice(1)}
+**❌ Error:** ${error.message}`;
 
-**💡 Try again later or contact admin if the problem persists.`;
+            // Add platform-specific troubleshooting tips
+            switch (platform) {
+                case 'youtube':
+                    errorMessage += `
+
+**🔧 YouTube Troubleshooting:**
+• Make sure the video is public and not age-restricted
+• Check if the video is available in your region
+• Try a different YouTube video`;
+                    break;
+                case 'facebook':
+                    errorMessage += `
+
+**🔧 Facebook Troubleshooting:**
+• Make sure the video is public
+• Check if the video is still available
+• Try a different Facebook video`;
+                    break;
+                case 'instagram':
+                    errorMessage += `
+
+**🔧 Instagram Troubleshooting:**
+• Make sure the post is public
+• Check if the post is still available
+• Try a different Instagram post`;
+                    break;
+            }
+
+            errorMessage += `
+
+**💡 Try again later or contact admin if the problem persists.**`;
+
+            return errorMessage;
         }
     }
 
@@ -62,10 +128,6 @@ This is a placeholder response.`;
         } catch (_) {
             return false;
         }
-    }
-
-    isFacebookVideo(url) {
-        return url.includes('facebook.com') || url.includes('fb.watch');
     }
 }
 

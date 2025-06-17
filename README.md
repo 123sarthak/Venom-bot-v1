@@ -14,7 +14,7 @@ A powerful Facebook Messenger bot with games, utilities, and admin features.
 - **!info** - Bot information and command list
 - **!about** - About the bot and developer
 - **!stats** - Show bot statistics (admin stats for admins)
-- **!download** - Download videos from URLs (Facebook videos supported)
+- **!download** - **Real video downloader** for YouTube, Facebook, and Instagram
 
 ### 👑 Admin Commands
 - **!broadcast** - Send message to all groups
@@ -33,6 +33,13 @@ A powerful Facebook Messenger bot with games, utilities, and admin features.
 - **Error handling** with user-friendly messages
 - **Admin permission system**
 - **Real-time statistics**
+
+### 📥 Video Downloader
+- **🎥 YouTube Videos** - Full support with ytdl-core
+- **📘 Facebook Videos** - Direct video extraction
+- **📷 Instagram Videos & Reels** - Media download support
+- **💾 Automatic cleanup** - Files deleted after 24 hours
+- **🔧 Platform-specific troubleshooting**
 
 ## 🚀 Installation
 
@@ -72,8 +79,11 @@ A powerful Facebook Messenger bot with games, utilities, and admin features.
 - `!tictactoe` - Start a new game
 - `!tictactoe <position>` - Make a move (1-9)
 
-### Utilities
+### Video Downloads
 - `!download <url>` - Download video from URL
+- **YouTube:** `!download https://www.youtube.com/watch?v=dQw4w9WgXcQ`
+- **Facebook:** `!download https://www.facebook.com/watch?v=123456789`
+- **Instagram:** `!download https://www.instagram.com/p/ABC123/`
 
 ### Admin Commands
 - `!broadcast <message>` - Send to all groups
@@ -96,6 +106,32 @@ The bot supports a full Tic Tac Toe game with:
 4 | 5 | 6
 ─────────
 7 | 8 | 9
+```
+
+## 📥 Video Downloader
+
+### Supported Platforms
+- **🎥 YouTube Videos** - Full support using ytdl-core
+- **📘 Facebook Videos** - Direct video extraction
+- **📷 Instagram Videos & Reels** - Media download support
+
+### Features
+- **Real downloads** - No more placeholder responses
+- **Automatic platform detection**
+- **File size reporting**
+- **Automatic cleanup** (24 hours)
+- **Error handling** with troubleshooting tips
+
+### Usage Examples
+```bash
+# YouTube
+!download https://www.youtube.com/watch?v=dQw4w9WgXcQ
+
+# Facebook
+!download https://www.facebook.com/watch?v=123456789
+
+# Instagram
+!download https://www.instagram.com/p/ABC123/
 ```
 
 ## 👋 Welcome Messages
@@ -148,6 +184,7 @@ src/
 ├── utils/             # Utility modules
 │   ├── facebookApi.js
 │   ├── textFormatter.js
+│   ├── videoDownloader.js
 │   └── database.js
 ├── config/            # Configuration
 │   └── botConfig.js
@@ -165,6 +202,20 @@ npm run dev
 ```bash
 npm run deploy
 ```
+
+## 📦 Dependencies
+
+### Core Dependencies
+- `@dongdev/fca-unofficial` - Facebook Messenger API
+- `ytdl-core` - YouTube video downloads
+- `axios` - HTTP requests for video extraction
+- `fs-extra` - Enhanced file system operations
+- `dotenv` - Environment variable management
+
+### Video Download Dependencies
+- **ytdl-core** - YouTube video downloading
+- **axios** - HTTP requests for Facebook/Instagram
+- **fs-extra** - File system operations
 
 ## 🤝 Contributing
 
@@ -188,6 +239,18 @@ If you encounter any issues or have questions:
 1. Check the command list with `!help`
 2. Review the bot information with `!info`
 3. Contact the developer
+
+## 🔧 Troubleshooting
+
+### Video Download Issues
+- **YouTube:** Make sure videos are public and not age-restricted
+- **Facebook:** Ensure videos are public and accessible
+- **Instagram:** Check if posts are public and available
+
+### General Issues
+- Check your `.env` file configuration
+- Ensure all dependencies are installed
+- Verify Facebook login credentials
 
 ---
 

@@ -15,16 +15,25 @@ class AboutCommand {
 
 **🎯 Features:**
 • 🎮 Tic Tac Toe Game
-• 📥 Video Downloader
+• 📥 **Real Video Downloader** (YouTube, Facebook, Instagram)
 • 👑 Admin Commands
 • 🎯 Easy to use commands
 • 👋 Welcome/Goodbye messages
+• 🤖 Smart command handling
 
 **🛠️ Technology:**
 • Built with Node.js
 • Facebook Messenger API
 • SQLite Database
 • Modern JavaScript (ES6+)
+• ytdl-core for YouTube downloads
+• Axios for HTTP requests
+
+**📥 Video Download Support:**
+• 🎥 **YouTube Videos** - Full support with ytdl-core
+• 📘 **Facebook Videos** - Direct video extraction
+• 📷 **Instagram Videos & Reels** - Media download support
+• 💾 **Automatic cleanup** - Files deleted after 24 hours
 
 **📞 Contact:**
 • Developer: Sarthak
