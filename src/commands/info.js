@@ -32,7 +32,7 @@ class InfoCommand {
 💡 *Example:*
 ${PREFIX}play shape of you
 
-Made with ❤️ by Sarthak`;
+Made with ❤️ by Sarthak 🇳🇵`;
         return infoText;
     }
 }
