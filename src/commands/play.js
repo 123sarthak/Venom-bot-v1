@@ -5,6 +5,23 @@ const ffmpegPath = require('ffmpeg-static');
 const fs = require('fs');
 const path = require('path');
 
+// --- YouTube cookies support for play-dl ---
+try {
+    const cookiesPath = path.join(__dirname, '../../youtube_cookies.txt');
+    if (fs.existsSync(cookiesPath)) {
+        const cookies = fs.readFileSync(cookiesPath, 'utf8');
+        play.setToken({
+            youtube: { cookie: cookies }
+        });
+        console.log('✅ YouTube cookies loaded for play-dl');
+    } else {
+        console.log('ℹ️ youtube_cookies.txt not found, proceeding without cookies');
+    }
+} catch (err) {
+    console.error('Error loading YouTube cookies:', err);
+}
+// --- End cookies support ---
+
 const MAX_MESSENGER_FILE_SIZE = 25 * 1024 * 1024;
 
 class PlayCommand {
