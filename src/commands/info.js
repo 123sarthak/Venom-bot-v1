@@ -10,11 +10,12 @@ class InfoCommand {
         const infoText = `ℹ️ *Sarthak's Bot Info*
 
 ✨ *Version:* **1.0.0**
-👨‍💻 *Creator:* **Sarthak**
+👨‍💻 *Creator:* **Sarthak 🇳🇵**
 💬 *Platform:* **Facebook Messenger**
 
 🎯 *Features:*
 - 🎮 Games: Tic Tac Toe
+- 🎵 Music: Play any song by name from YouTube
 - 🛠️ Utilities: Download videos from YouTube, Facebook, Instagram
 - 👑 Admin: broadcast, addgroup, removegroup, listgroups
 - 👋 Welcome/Goodbye messages
@@ -22,13 +23,14 @@ class InfoCommand {
 
 🔥 *Popular Commands:*
 • **${PREFIX}help** — Show help
+• **${PREFIX}play <song name>** — Play a song (YouTube audio)
 • **${PREFIX}tictactoe** — Play a game
 • **${PREFIX}download <url>** — Download video
 • **${PREFIX}about** — About the bot
 • **${PREFIX}stats** — Bot stats
 
 💡 *Example:*
-${PREFIX}download https://www.youtube.com/watch?v=dQw4w9WgXcQ
+${PREFIX}play shape of you
 
 Made with ❤️ by Sarthak`;
         return infoText;

@@ -19,6 +19,9 @@ class HelpCommand {
 • **${PREFIX}tictactoe** — Start a new Tic Tac Toe game
 • **${PREFIX}tictactoe <position>** — Make a move (1-9)
 
+🎵 *Music Commands:*
+• **${PREFIX}play <song name>** — Play a song by name (YouTube audio)
+
 🛠️ *Utility Commands:*
 • **${PREFIX}download <url>** — Download video from YouTube, Facebook, or Instagram
 
@@ -29,6 +32,7 @@ class HelpCommand {
 • **${PREFIX}listgroups** — List all groups where bot is active
 
 💡 *Examples:*
+- **${PREFIX}play shape of you**
 - **${PREFIX}tictactoe**
 - **${PREFIX}download https://www.youtube.com/watch?v=dQw4w9WgXcQ**
 - **${PREFIX}about**

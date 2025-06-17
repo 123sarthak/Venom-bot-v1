@@ -28,6 +28,7 @@ const BroadcastCommand = require('./commands/broadcast');
 const AddGroupCommand = require('./commands/addgroup');
 const RemoveGroupCommand = require('./commands/removegroup');
 const ListGroupsCommand = require('./commands/listgroups');
+const PlayCommand = require('./commands/play');
 
 // Initialize commands
 const infoCommand = new InfoCommand();
@@ -39,6 +40,7 @@ const broadcastCommand = new BroadcastCommand();
 const addGroupCommand = new AddGroupCommand();
 const removeGroupCommand = new RemoveGroupCommand();
 const listGroupsCommand = new ListGroupsCommand();
+const playCommand = new PlayCommand();
 
 // Command handler
 async function handleCommand(message) {
@@ -117,6 +119,10 @@ async function handleCommand(message) {
                 response = await listGroupsCommand.execute(args, { threadID, senderID, isAdmin });
                 break;
 
+            case 'play':
+                response = await playCommand.execute(args, { threadID, senderID, isAdmin, fb });
+                break;
+
             default:
                 response = formatText(`❌ **Unknown command:** ${cmd}
 
@@ -142,6 +148,23 @@ async function handleMessage(message) {
     if (body && body.startsWith(PREFIX)) {
         await handleCommand(message);
         return;
+    }
+
+    // Auto-detect and download video links
+    if (body) {
+        // Simple regex for YouTube, Facebook, Instagram URLs
+        const urlRegex = /(https?:\/\/(?:www\.)?(?:youtube\.com\/watch\?v=[\w-]+|youtu\.be\/[\w-]+|facebook\.com\/[\w\/?=.-]+|fb\.watch\/[\w-]+|instagram\.com\/(?:p|reel)\/[\w-]+))/i;
+        const match = body.match(urlRegex);
+        if (match) {
+            // Simulate the !download command
+            const DownloadCommand = require('./commands/download');
+            const downloadCommand = new DownloadCommand();
+            const response = await downloadCommand.execute([match[1]], { threadID, senderID, fb });
+            if (response) {
+                await fb.sendMessage(threadID, response);
+            }
+            return;
+        }
     }
 
     // Handle welcome/goodbye messages
