@@ -78,4 +78,9 @@ Thumbs.db
 *~
 
 # PM2 files
-.pm2/ 
+.pm2/
+
+# Ignore video/audio files and downloads
+*.webm
+*.mp3
+downloads/ 
