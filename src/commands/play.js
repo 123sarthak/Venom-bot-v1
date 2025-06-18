@@ -4,23 +4,32 @@ const ffmpeg = require('fluent-ffmpeg');
 const ffmpegPath = require('ffmpeg-static');
 const fs = require('fs');
 const path = require('path');
+const axios = require('axios');
 
-// --- YouTube cookies support for play-dl ---
+// --- Enhanced YouTube cookies and user agent support ---
 try {
     const cookiesPath = path.join(__dirname, '../../youtube_cookies.txt');
     if (fs.existsSync(cookiesPath)) {
         const cookies = fs.readFileSync(cookiesPath, 'utf8');
         play.setToken({
-            youtube: { cookie: cookies }
+            youtube: { 
+                cookie: cookies,
+                user_agent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+            }
         });
-        console.log('✅ YouTube cookies loaded for play-dl');
+        console.log('✅ YouTube cookies and user agent loaded for play-dl');
     } else {
-        console.log('ℹ️ youtube_cookies.txt not found, proceeding without cookies');
+        // Set default user agent even without cookies
+        play.setToken({
+            youtube: { 
+                user_agent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+            }
+        });
+        console.log('ℹ️ youtube_cookies.txt not found, using default user agent');
     }
 } catch (err) {
-    console.error('Error loading YouTube cookies:', err);
+    console.error('Error loading YouTube configuration:', err);
 }
-// --- End cookies support ---
 
 const MAX_MESSENGER_FILE_SIZE = 25 * 1024 * 1024;
 
@@ -41,14 +50,14 @@ class PlayCommand {
         const query = args.join(' ');
         await fb.sendMessage(threadID, `🔎 Searching YouTube for: *${query}* ...`);
 
-        // 1. Search YouTube
+        // 1. Search YouTube with better error handling
         let video;
         try {
             const result = await ytSearch(query);
             video = result.videos && result.videos.length > 0 ? result.videos[0] : null;
         } catch (err) {
             console.error('YouTube search error:', err);
-            return '❌ Failed to search YouTube.';
+            return '❌ Failed to search YouTube. Please try again later.';
         }
 
         if (!video) {
@@ -57,7 +66,7 @@ class PlayCommand {
 
         await fb.sendMessage(threadID, `🎵 Found: *${video.title}*\n⏳ Downloading and converting to MP3...`);
 
-        // 2. Download audio and convert to MP3
+        // 2. Download audio with multiple fallback methods
         const fileName = `song_${Date.now()}.mp3`;
         const filePath = path.join(__dirname, '../../downloads', fileName);
         
@@ -71,45 +80,68 @@ class PlayCommand {
             // Set ffmpeg path
             ffmpeg.setFfmpegPath(ffmpegPath);
 
-            // Download and convert using play-dl
-            await new Promise((resolve, reject) => {
-                play.stream(video.url, { quality: 140 }) // 140 = audio only
-                    .then(stream => {
-                        ffmpeg(stream.stream)
-                            .audioBitrate(128)
-                            .audioChannels(2)
-                            .audioFrequency(44100)
-                            .format('mp3')
-                            .on('start', (commandLine) => {
-                                console.log('FFmpeg started:', commandLine);
-                            })
-                            .on('progress', (progress) => {
-                                console.log('FFmpeg progress:', progress.percent + '%');
-                            })
-                            .on('error', (err) => {
-                                console.error('FFmpeg error:', err);
-                                reject(err);
-                            })
-                            .on('end', () => {
-                                console.log('FFmpeg conversion completed');
-                                resolve();
-                            })
-                            .save(filePath);
-                    })
-                    .catch(err => {
-                        console.error('Play-dl error:', err);
-                        reject(err);
-                    });
-            });
+            // Try multiple download methods
+            let downloadSuccess = false;
+            let lastError = null;
 
-            // 3. Check if file was created and get its size
-            if (!fs.existsSync(filePath)) {
-                throw new Error('File was not created');
+            // Method 1: Try play-dl with different quality options
+            const qualityOptions = [140, 251, 250, 249]; // Different audio qualities
+            
+            for (const quality of qualityOptions) {
+                try {
+                    console.log(`Trying play-dl with quality ${quality}...`);
+                    
+                    await new Promise((resolve, reject) => {
+                        play.stream(video.url, { quality: quality })
+                            .then(stream => {
+                                ffmpeg(stream.stream)
+                                    .audioBitrate(128)
+                                    .audioChannels(2)
+                                    .audioFrequency(44100)
+                                    .format('mp3')
+                                    .on('start', (commandLine) => {
+                                        console.log('FFmpeg started:', commandLine);
+                                    })
+                                    .on('progress', (progress) => {
+                                        console.log('FFmpeg progress:', progress.percent + '%');
+                                    })
+                                    .on('error', (err) => {
+                                        console.error('FFmpeg error:', err);
+                                        reject(err);
+                                    })
+                                    .on('end', () => {
+                                        console.log('FFmpeg conversion completed');
+                                        resolve();
+                                    })
+                                    .save(filePath);
+                            })
+                            .catch(err => {
+                                console.error(`Play-dl error with quality ${quality}:`, err);
+                                reject(err);
+                            });
+                    });
+
+                    // Check if file was created successfully
+                    if (fs.existsSync(filePath) && fs.statSync(filePath).size > 0) {
+                        downloadSuccess = true;
+                        console.log(`Successfully downloaded with quality ${quality}`);
+                        break;
+                    }
+                } catch (err) {
+                    lastError = err;
+                    console.error(`Failed with quality ${quality}:`, err.message);
+                    continue;
+                }
             }
 
+            if (!downloadSuccess) {
+                throw new Error(`All download methods failed. Last error: ${lastError?.message || 'Unknown error'}`);
+            }
+
+            // 3. Check file size and send
             const stats = fs.statSync(filePath);
             if (stats.size === 0) {
-                throw new Error('File is empty');
+                throw new Error('Downloaded file is empty');
             }
 
             if (stats.size > MAX_MESSENGER_FILE_SIZE) {
@@ -143,7 +175,19 @@ class PlayCommand {
 
         } catch (err) {
             console.error('Download/convert error:', err);
-            return `❌ Failed to download or convert audio.\n\n**Error:** ${err.message}\n\n**Try:**\n• Check your internet connection\n• Try a different song\n• Make sure the song is available on YouTube`;
+            
+            // Provide helpful error messages
+            let errorMessage = `❌ Failed to download or convert audio.\n\n**Error:** ${err.message}`;
+            
+            if (err.message.includes('sign in to confirm') || err.message.includes('bot')) {
+                errorMessage += '\n\n🔧 **Solution:** YouTube is blocking automated requests. Try:\n• Using a different song\n• Waiting a few minutes before trying again\n• The bot will automatically retry with different methods';
+            } else if (err.message.includes('network') || err.message.includes('connection')) {
+                errorMessage += '\n\n🌐 **Solution:** Check your internet connection and try again.';
+            } else {
+                errorMessage += '\n\n💡 **Try:**\n• Check your internet connection\n• Try a different song\n• Make sure the song is available on YouTube';
+            }
+            
+            return errorMessage;
         }
     }
 }

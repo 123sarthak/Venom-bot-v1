@@ -1,0 +1,25 @@
+# YouTube Cookies Template
+# To get your YouTube cookies:
+# 1. Go to YouTube.com in your browser
+# 2. Open Developer Tools (F12)
+# 3. Go to Application/Storage tab
+# 4. Find Cookies under youtube.com
+# 5. Copy the values for these cookies:
+#    - SID
+#    - HSID
+#    - SSID
+#    - APISID
+#    - SAPISID
+#    - __Secure-3PAPISID
+#    - __Secure-3PSID
+#    - __Secure-1PAPISID
+#    - __Secure-1PSID
+#    - __Secure-3PSIDCC
+#    - __Secure-1PSIDCC
+# 6. Paste them below in this format:
+#    SID=your_sid_value; HSID=your_hsid_value; SSID=your_ssid_value; ...
+
+# Example format (replace with your actual values):
+# SID=your_actual_sid; HSID=your_actual_hsid; SSID=your_actual_ssid; APISID=your_actual_apisid; SAPISID=your_actual_sapisid; __Secure-3PAPISID=your_actual_3papisid; __Secure-3PSID=your_actual_3psid; __Secure-1PAPISID=your_actual_1papisid; __Secure-1PSID=your_actual_1psid; __Secure-3PSIDCC=your_actual_3psidcc; __Secure-1PSIDCC=your_actual_1psidcc
+
+# Leave this line empty if you don't have cookies yet: 

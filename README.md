@@ -242,6 +242,41 @@ If you encounter any issues or have questions:
 
 ## 🔧 Troubleshooting
 
+### YouTube Bot Detection Issue
+If you get "sign in to confirm you're not a bot" error when using `!play` command:
+
+**🔧 Solution 1: Add YouTube Cookies**
+1. Go to [YouTube.com](https://youtube.com) in your browser
+2. Make sure you're logged in to your Google account
+3. Open Developer Tools (F12)
+4. Go to **Application** tab → **Storage** → **Cookies** → **https://youtube.com**
+5. Copy these cookie values:
+   - `SID`
+   - `HSID` 
+   - `SSID`
+   - `APISID`
+   - `SAPISID`
+   - `__Secure-3PAPISID`
+   - `__Secure-3PSID`
+   - `__Secure-1PAPISID`
+   - `__Secure-1PSID`
+   - `__Secure-3PSIDCC`
+   - `__Secure-1PSIDCC`
+6. Open `youtube_cookies.txt` in the bot directory
+7. Paste them in this format: `SID=value; HSID=value; SSID=value; ...`
+8. Restart the bot
+
+**🔧 Solution 2: Alternative Methods**
+- Try different songs (some may work better than others)
+- Wait a few minutes between attempts
+- The bot automatically tries multiple quality options
+- Use `!download <youtube_url>` instead of `!play` for direct video downloads
+
+**🔧 Solution 3: Update Dependencies**
+```bash
+npm update play-dl yt-search
+```
+
 ### Video Download Issues
 - **YouTube:** Make sure videos are public and not age-restricted
 - **Facebook:** Ensure videos are public and accessible
@@ -251,6 +286,13 @@ If you encounter any issues or have questions:
 - Check your `.env` file configuration
 - Ensure all dependencies are installed
 - Verify Facebook login credentials
+- Make sure you have enough disk space for downloads
+
+### Common Error Messages
+- **"Failed to download or convert audio"** → Try the YouTube cookies solution above
+- **"File too large"** → Video exceeds 25MB Messenger limit
+- **"No results found"** → Try a different search term
+- **"Network error"** → Check your internet connection
 
 ---
 

@@ -32,6 +32,13 @@ class InfoCommand {
 💡 *Example:*
 ${PREFIX}play shape of you
 
+🔧 *Troubleshooting:*
+If !play shows "sign in to confirm you're not a bot":
+• Add YouTube cookies to youtube_cookies.txt
+• Try different songs
+• Use !download <youtube_url> instead
+• Check README.md for detailed solutions
+
 Made with ❤️ by Sarthak 🇳🇵`;
         return infoText;
     }
