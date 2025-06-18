@@ -108,7 +108,8 @@ If you want to serve files via HTTP, let the developer know!`;
 **🔧 YouTube Troubleshooting:**
 • Make sure the video is public and not age-restricted
 • Check if the video is available in your region
-• Try a different YouTube video`;
+• Try a different YouTube video
+• Some videos may be copyright-protected`;
                     break;
                 case 'facebook':
                     errorMessage += `
@@ -116,7 +117,8 @@ If you want to serve files via HTTP, let the developer know!`;
 **🔧 Facebook Troubleshooting:**
 • Make sure the video is public
 • Check if the video is still available
-• Try a different Facebook video`;
+• Try a different Facebook video
+• Some videos may be private or deleted`;
                     break;
                 case 'instagram':
                     errorMessage += `
@@ -124,7 +126,9 @@ If you want to serve files via HTTP, let the developer know!`;
 **🔧 Instagram Troubleshooting:**
 • Make sure the post is public
 • Check if the post is still available
-• Try a different Instagram post`;
+• Try a different Instagram post
+• Some posts may be private or deleted
+• Instagram may temporarily block downloads for some content`;
                     break;
             }
 

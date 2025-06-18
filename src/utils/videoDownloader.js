@@ -2,6 +2,7 @@ const ytdl = require('ytdl-core');
 const axios = require('axios');
 const fs = require('fs-extra');
 const path = require('path');
+const instagramGetUrl = require('instagram-url-direct');
 
 class VideoDownloader {
     constructor() {
@@ -127,32 +128,24 @@ class VideoDownloader {
 
     async downloadInstagram(url, filePath, fileName) {
         try {
-            // Extract media ID from Instagram URL
-            const mediaId = this.extractInstagramMediaId(url);
-            if (!mediaId) {
-                throw new Error('Could not extract media ID from Instagram URL');
-            }
-
-            // Instagram video download API (simplified approach)
-            const response = await axios.get(`https://www.instagram.com/p/${mediaId}/embed/`, {
-                headers: {
-                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-                }
-            });
-
-            // Extract video URL from response (simplified approach)
-            const videoUrlMatch = response.data.match(/video_url":"([^"]+)"/);
-            if (!videoUrlMatch) {
+            // Use instagram-url-direct to get direct download links
+            const result = await instagramGetUrl(url);
+            
+            if (!result || !result.url_list || result.url_list.length === 0) {
                 throw new Error('Could not extract video URL from Instagram');
             }
 
-            const videoUrl = videoUrlMatch[1].replace(/\\u0026/g, '&');
+            // Get the best quality video URL (usually the first one)
+            const videoUrl = result.url_list[0];
             
             // Download the video
             const videoResponse = await axios({
                 method: 'GET',
                 url: videoUrl,
-                responseType: 'stream'
+                responseType: 'stream',
+                headers: {
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+                }
             });
 
             const writeStream = fs.createWriteStream(filePath);
@@ -184,22 +177,6 @@ class VideoDownloader {
             /facebook\.com\/watch\?v=(\d+)/,
             /facebook\.com\/.*?\/videos\/(\d+)/,
             /fb\.watch\/([a-zA-Z0-9_-]+)/
-        ];
-
-        for (const pattern of patterns) {
-            const match = url.match(pattern);
-            if (match) {
-                return match[1];
-            }
-        }
-        return null;
-    }
-
-    extractInstagramMediaId(url) {
-        // Extract media ID from Instagram URL
-        const patterns = [
-            /instagram\.com\/p\/([a-zA-Z0-9_-]+)/,
-            /instagram\.com\/reel\/([a-zA-Z0-9_-]+)/
         ];
 
         for (const pattern of patterns) {
