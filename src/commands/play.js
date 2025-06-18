@@ -7,6 +7,36 @@ const { spawn } = require('child_process');
 
 const MAX_MESSENGER_FILE_SIZE = 25 * 1024 * 1024;
 
+const downloadAudioFromYouTube = (url, outputFilename, onSuccess, onError) => {
+  const outputPath = path.resolve(__dirname, '../downloads', outputFilename + '.mp3');
+
+  const ytdlp = spawn('yt-dlp', [
+    '--extract-audio',
+    '--audio-format', 'mp3',
+    '--ffmpeg-location', 'ffmpeg', // optional, if already in PATH
+    '-o', outputPath,
+    url
+  ]);
+
+  ytdlp.stdout.on('data', (data) => {
+    console.log(`[yt-dlp] ${data}`);
+  });
+
+  ytdlp.stderr.on('data', (data) => {
+    console.error(`[yt-dlp ERROR] ${data}`);
+  });
+
+  ytdlp.on('close', (code) => {
+    if (code === 0) {
+      console.log('✅ Download complete:', outputPath);
+      onSuccess(outputPath);
+    } else {
+      console.error('❌ yt-dlp failed with exit code', code);
+      onError(new Error('yt-dlp failed to download audio.'));
+    }
+  });
+};
+
 class PlayCommand {
     constructor() {
         this.name = 'play';
@@ -41,51 +71,29 @@ class PlayCommand {
         await fb.sendMessage(threadID, `🎵 Found: *${video.title}*\n⏳ Downloading and converting to MP3...`);
 
         // 2. Download audio using yt-dlp
-        const fileName = `song_${Date.now()}.mp3`;
-        const filePath = path.join(__dirname, '../../downloads', fileName);
+        const fileName = `song_${Date.now()}`;
         
         try {
             // Ensure downloads directory exists
-            const downloadsDir = path.dirname(filePath);
+            const downloadsDir = path.join(__dirname, '../../downloads');
             if (!fs.existsSync(downloadsDir)) {
                 fs.mkdirSync(downloadsDir, { recursive: true });
             }
 
-            // Download using yt-dlp
+            // Download using the improved yt-dlp function
             await new Promise((resolve, reject) => {
-                const ytDlpProcess = spawn(
-                    'python',
-                    [
-                        '-m', 'yt_dlp',
-                        video.url,
-                        '-f', 'bestaudio',
-                        '--extract-audio',
-                        '--audio-format', 'mp3',
-                        '--audio-quality', '0',
-                        '-o', filePath
-                    ]
-                );
-
-                ytDlpProcess.stdout.on('data', (data) => {
-                    console.log(`[yt-dlp] ${data}`.trim());
-                });
-                
-                ytDlpProcess.stderr.on('data', (data) => {
-                    console.error(`[yt-dlp] ${data}`.trim());
-                });
-                
-                ytDlpProcess.on('close', (code) => {
-                    if (code === 0 && fs.existsSync(filePath) && fs.statSync(filePath).size > 0) {
+                downloadAudioFromYouTube(
+                    video.url,
+                    fileName,
+                    (outputPath) => {
                         console.log('✅ yt-dlp download completed successfully');
-                        resolve();
-                    } else {
-                        reject(new Error(`yt-dlp failed with exit code: ${code}`));
+                        resolve(outputPath);
+                    },
+                    (error) => {
+                        console.error('yt-dlp download failed:', error);
+                        reject(error);
                     }
-                });
-
-                ytDlpProcess.on('error', (err) => {
-                    reject(new Error(`yt-dlp process error: ${err.message}`));
-                });
+                );
             });
 
         } catch (err) {
@@ -94,6 +102,7 @@ class PlayCommand {
         }
 
         // 3. Check if file was created successfully
+        const filePath = path.join(__dirname, '../../downloads', fileName + '.mp3');
         if (!fs.existsSync(filePath) || fs.statSync(filePath).size === 0) {
             return '❌ Downloaded file is empty or was not created.';
         }
@@ -101,7 +110,7 @@ class PlayCommand {
         // 4. Check file size
         const stats = fs.statSync(filePath);
         if (stats.size > MAX_MESSENGER_FILE_SIZE) {
-            return `✅ Song downloaded, but it is too large to send on Messenger (limit: 25MB).\n\n**File:** ${fileName}\n**Size:** ${(stats.size / (1024*1024)).toFixed(2)} MB`;
+            return `✅ Song downloaded, but it is too large to send on Messenger (limit: 25MB).\n\n**File:** ${fileName}.mp3\n**Size:** ${(stats.size / (1024*1024)).toFixed(2)} MB`;
         }
 
         // 5. Send audio as attachment
@@ -116,7 +125,7 @@ class PlayCommand {
                 try {
                     if (fs.existsSync(filePath)) {
                         fs.unlinkSync(filePath);
-                        console.log(`Cleaned up: ${fileName}`);
+                        console.log(`Cleaned up: ${fileName}.mp3`);
                     }
                 } catch (cleanupErr) {
                     console.error('Cleanup error:', cleanupErr);
@@ -126,7 +135,7 @@ class PlayCommand {
             return null;
         } catch (err) {
             console.error('Send attachment error:', err);
-            return `✅ Song downloaded, but failed to send as attachment.\n\n**File:** ${fileName}\n**Error:** ${err.message}`;
+            return `✅ Song downloaded, but failed to send as attachment.\n\n**File:** ${fileName}.mp3\n**Error:** ${err.message}`;
         }
     }
 }
