@@ -6,30 +6,9 @@ const fs = require('fs');
 const path = require('path');
 const axios = require('axios');
 
-// --- Enhanced YouTube cookies and user agent support ---
-try {
-    const cookiesPath = path.join(__dirname, '../../youtube_cookies.txt');
-    if (fs.existsSync(cookiesPath)) {
-        const cookies = fs.readFileSync(cookiesPath, 'utf8');
-        play.setToken({
-            youtube: { 
-                cookie: cookies,
-                user_agent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-            }
-        });
-        console.log('✅ YouTube cookies and user agent loaded for play-dl');
-    } else {
-        // Set default user agent even without cookies
-        play.setToken({
-            youtube: { 
-                user_agent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-            }
-        });
-        console.log('ℹ️ youtube_cookies.txt not found, using default user agent');
-    }
-} catch (err) {
-    console.error('Error loading YouTube configuration:', err);
-}
+// --- YouTube configuration removed to avoid cookie parsing errors ---
+// play-dl will use its default configuration without any token setting
+console.log('ℹ️ Using play-dl with default configuration (no custom tokens)');
 
 const MAX_MESSENGER_FILE_SIZE = 25 * 1024 * 1024;
 

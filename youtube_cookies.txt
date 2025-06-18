@@ -1,10 +1,13 @@
-# YouTube Cookies Template
-# To get your YouTube cookies:
+# YouTube Cookies Instructions
+# 
+# To fix "sign in to confirm you're not a bot" error:
+# 
 # 1. Go to YouTube.com in your browser
-# 2. Open Developer Tools (F12)
-# 3. Go to Application/Storage tab
-# 4. Find Cookies under youtube.com
-# 5. Copy the values for these cookies:
+# 2. Make sure you're logged in to your Google account
+# 3. Open Developer Tools (F12)
+# 4. Go to Application/Storage tab
+# 5. Find Cookies under youtube.com
+# 6. Copy these cookie values:
 #    - SID
 #    - HSID
 #    - SSID
@@ -16,10 +19,12 @@
 #    - __Secure-1PSID
 #    - __Secure-3PSIDCC
 #    - __Secure-1PSIDCC
-# 6. Paste them below in this format:
+# 
+# 7. Paste them below in this format (remove the # at the start):
 #    SID=your_sid_value; HSID=your_hsid_value; SSID=your_ssid_value; ...
-
-# Example format (replace with your actual values):
-# SID=your_actual_sid; HSID=your_actual_hsid; SSID=your_actual_ssid; APISID=your_actual_apisid; SAPISID=your_actual_sapisid; __Secure-3PAPISID=your_actual_3papisid; __Secure-3PSID=your_actual_3psid; __Secure-1PAPISID=your_actual_1papisid; __Secure-1PSID=your_actual_1psid; __Secure-3PSIDCC=your_actual_3psidcc; __Secure-1PSIDCC=your_actual_1psidcc
-
-# Leave this line empty if you don't have cookies yet: 
+# 
+# Example:
+# SID=abc123; HSID=def456; SSID=ghi789; APISID=jkl012; SAPISID=mno345; __Secure-3PAPISID=pqr678; __Secure-3PSID=stu901; __Secure-1PAPISID=vwx234; __Secure-1PSID=yz5678; __Secure-3PSIDCC=abc901; __Secure-1PSIDCC=def234
+# 
+# Leave this file empty if you don't have cookies yet.
+# The bot will work without cookies, but may have limitations. 
