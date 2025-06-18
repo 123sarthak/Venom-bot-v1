@@ -2,7 +2,7 @@ const ytdl = require('ytdl-core');
 const axios = require('axios');
 const fs = require('fs-extra');
 const path = require('path');
-const instagramGetUrl = require('instagram-url-direct');
+const ig = require('instagram-url-direct');
 
 class VideoDownloader {
     constructor() {
@@ -129,10 +129,10 @@ class VideoDownloader {
     async downloadInstagram(url, filePath, fileName) {
         try {
             // Use instagram-url-direct to get direct download links
-            const result = await instagramGetUrl(url);
+            const result = await ig.getInfo(url);
             
             if (!result || !result.url_list || result.url_list.length === 0) {
-                throw new Error('Could not extract video URL from Instagram');
+                throw new Error('No video URL found');
             }
 
             // Get the best quality video URL (usually the first one)
