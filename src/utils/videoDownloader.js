@@ -1,8 +1,9 @@
-const ytdl = require('ytdl-core');
+// const ytdl = require('ytdl-core');
 const axios = require('axios');
 const fs = require('fs-extra');
 const path = require('path');
 const ig = require('instagram-url-direct');
+const { spawn } = require('child_process');
 
 class VideoDownloader {
     constructor() {
@@ -39,33 +40,38 @@ class VideoDownloader {
 
     async downloadYouTube(url, filePath, fileName) {
         try {
-            // Use ytdl-core to get video stream
-            const videoStream = ytdl(url, {
-                quality: 'highest',
-                filter: 'audioandvideo'
-            });
-            
-            const writeStream = fs.createWriteStream(filePath);
-            
-            return new Promise((resolve, reject) => {
-                videoStream.pipe(writeStream);
+            // Use yt-dlp to download the video
+            return await new Promise((resolve, reject) => {
+                const ytdlp = spawn('yt-dlp', [
+                    '-f', 'best',
+                    '-o', filePath,
+                    url
+                ]);
 
-                writeStream.on('finish', () => {
-                    resolve({
-                        success: true,
-                        filePath: filePath,
-                        fileName: fileName,
-                        platform: 'YouTube',
-                        message: `✅ **YouTube video downloaded successfully!**\n\n📁 **File:** ${fileName}\n📱 **Platform:** YouTube\n💾 **Size:** ${this.getFileSize(filePath)}`
-                    });
+                ytdlp.stdout.on('data', (data) => {
+                    console.log(`[yt-dlp] ${data}`);
                 });
 
-                writeStream.on('error', (error) => {
-                    reject(new Error(`Failed to write YouTube video: ${error.message}`));
+                ytdlp.stderr.on('data', (data) => {
+                    console.error(`[yt-dlp ERROR] ${data}`);
                 });
 
-                videoStream.on('error', (error) => {
-                    reject(new Error(`Failed to download YouTube video: ${error.message}`));
+                ytdlp.on('close', (code) => {
+                    if (code === 0 && fs.existsSync(filePath) && fs.statSync(filePath).size > 0) {
+                        resolve({
+                            success: true,
+                            filePath: filePath,
+                            fileName: fileName,
+                            platform: 'YouTube',
+                            message: `✅ **YouTube video downloaded successfully!**\n\n📁 **File:** ${fileName}\n📱 **Platform:** YouTube\n💾 **Size:** ${this.getFileSize(filePath)}`
+                        });
+                    } else {
+                        reject(new Error('yt-dlp failed to download YouTube video.'));
+                    }
+                });
+
+                ytdlp.on('error', (err) => {
+                    reject(new Error(`yt-dlp process error: ${err.message}`));
                 });
             });
         } catch (error) {
