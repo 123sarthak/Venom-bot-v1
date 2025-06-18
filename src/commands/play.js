@@ -6,6 +6,44 @@ const fs = require('fs');
 const path = require('path');
 const axios = require('axios');
 
+// --- YouTube cookies support ---
+try {
+    const cookiesPath = path.join(__dirname, '../../youtube_cookies.txt');
+    if (fs.existsSync(cookiesPath)) {
+        const fileContent = fs.readFileSync(cookiesPath, 'utf8');
+        
+        // Extract the cookie line (skip comments and code lines)
+        const lines = fileContent.split('\n');
+        let cookies = '';
+        
+        for (const line of lines) {
+            const trimmedLine = line.trim();
+            // Look for a line that contains cookie values (has SID= and multiple cookies)
+            if (trimmedLine && trimmedLine.includes('SID=') && trimmedLine.includes(';')) {
+                cookies = trimmedLine;
+                break;
+            }
+        }
+        
+        if (cookies) {
+            play.setToken({
+                youtube: { 
+                    cookie: cookies,
+                    user_agent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+                }
+            });
+            console.log('✅ YouTube cookies and user agent loaded for play-dl');
+        } else {
+            console.log('ℹ️ No valid cookies found in youtube_cookies.txt, using default configuration');
+        }
+    } else {
+        console.log('ℹ️ youtube_cookies.txt not found, using default configuration');
+    }
+} catch (err) {
+    console.error('Error loading YouTube cookies:', err);
+    console.log('⚠️ Continuing with default configuration');
+}
+
 // --- YouTube configuration removed to avoid cookie parsing errors ---
 // play-dl will use its default configuration without any token setting
 console.log('ℹ️ Using play-dl with default configuration (no custom tokens)');

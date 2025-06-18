@@ -1,30 +1,10 @@
-# YouTube Cookies Instructions
-# 
-# To fix "sign in to confirm you're not a bot" error:
-# 
-# 1. Go to YouTube.com in your browser
-# 2. Make sure you're logged in to your Google account
-# 3. Open Developer Tools (F12)
-# 4. Go to Application/Storage tab
-# 5. Find Cookies under youtube.com
-# 6. Copy these cookie values:
-#    - SID
-#    - HSID
-#    - SSID
-#    - APISID
-#    - SAPISID
-#    - __Secure-3PAPISID
-#    - __Secure-3PSID
-#    - __Secure-1PAPISID
-#    - __Secure-1PSID
-#    - __Secure-3PSIDCC
-#    - __Secure-1PSIDCC
-# 
-# 7. Paste them below in this format (remove the # at the start):
-#    SID=your_sid_value; HSID=your_hsid_value; SSID=your_ssid_value; ...
-# 
-# Example:
-# SID=abc123; HSID=def456; SSID=ghi789; APISID=jkl012; SAPISID=mno345; __Secure-3PAPISID=pqr678; __Secure-3PSID=stu901; __Secure-1PAPISID=vwx234; __Secure-1PSID=yz5678; __Secure-3PSIDCC=abc901; __Secure-1PSIDCC=def234
-# 
-# Leave this file empty if you don't have cookies yet.
-# The bot will work without cookies, but may have limitations. 
+const fs = require("fs");
+const play = require("play-dl");
+
+const cookie = fs.readFileSync("youtube_cookies.txt", "utf-8").trim();
+
+await play.setToken({
+  youtube: {
+    cookie:"SID=g.a000xQgsxo4agJCJmJCrbq9n62zJWXrZW5ZUnNS1K2KdMLF5jfoiJxxanc2Lt5pKrAnpFvkljwACgYKAfASARISFQHGX2MihXNbRFSmQrUHb_mgBsCR3BoVAUF8yKp53qRp11oAsXACMp_BGQvD0076; SSID=AJ5Xc_CNym7aqonMP; HSID=ANkhofYFCOSPmD-Xp; APISID=uj04EqpJMZH9Ofok/AG1TFFRCS4UTiY7DQ; SAPISID=MDqSyVcAxU3AzB26/A7V8H5TlIjL-DaSyw; __Secure-3PAPISID=MDqSyVcAxU3AzB26/A7V8H5TlIjL-DaSyw; __Secure-3PSID=g.a000xQgsxo4agJCJmJCrbq9n62zJWXrZW5ZUnNS1K2KdMLF5jfoi7dUYvtDB-sUYBkSTVUFKsQACgYKATYSARISFQHGX2MilVYx_l17lebGulNNFG8VAxoVAUF8yKqkmXuLnvUnRC4LSimP8Ex00076; __Secure-1PAPISID=MDqSyVcAxU3AzB26/A7V8H5TlIjL-DaSyw; __Secure-1PSID=g.a000xQgsxo4agJCJmJCrbq9n62zJWXrZW5ZUnNS1K2KdMLF5jfoiCAaQexXmxd0Zq1arwvN4VQACgYKAbgSARISFQHGX2Miw_upZTRi7c6Jl_Gw01rfQRoVAUF8yKqIEt0Px7IL1B_wckodK6cs0076; __Secure-3PSIDCC=AKEyXzWQQc4dbDyxRURLQxGMQTFJ6z7Ah9xTY7AKB0IhSuOe7qEEMs8QAs_Yrh6KahkKswJWew; __Secure-1PSIDCC=AKEyXzWOnAI0oUPs5pbPIuqJRawLi2UKFj1_HB7hwUJ5oRXzMByOX7rPQQe2NUrpFMr4t4g51oQ"
+  }
+});
