@@ -152,6 +152,10 @@ class PlayCommand {
             }
 
             if (!downloadSuccess) {
+                // If all play-dl methods fail, suggest using download command
+                if (lastError && (lastError.message.includes('sign in to confirm') || lastError.message.includes('bot') || lastError.message.includes('unusual traffic'))) {
+                    return `❌ YouTube is blocking automated requests for this song.\n\n🎯 **Solution:** Use the download command instead:\n\n\`!download ${video.url}\`\n\nThis will download the video directly, which often works better for songs that trigger bot detection.`;
+                }
                 throw new Error(`All download methods failed. Last error: ${lastError?.message || 'Unknown error'}`);
             }
 
@@ -196,12 +200,19 @@ class PlayCommand {
             // Provide helpful error messages
             let errorMessage = `❌ Failed to download or convert audio.\n\n**Error:** ${err.message}`;
             
-            if (err.message.includes('sign in to confirm') || err.message.includes('bot')) {
-                errorMessage += '\n\n🔧 **Solution:** YouTube is blocking automated requests. Try:\n• Using a different song\n• Waiting a few minutes before trying again\n• The bot will automatically retry with different methods';
+            if (err.message.includes('sign in to confirm') || err.message.includes('bot') || err.message.includes('unusual traffic')) {
+                errorMessage += '\n\n🔧 **YouTube Bot Detection Issue:**\n';
+                errorMessage += '• YouTube is blocking automated requests\n';
+                errorMessage += '• Try using `!download <youtube_url>` instead\n';
+                errorMessage += '• Wait a few minutes before trying again\n';
+                errorMessage += '• Try a different song\n';
+                errorMessage += '• The bot will automatically retry with different methods\n\n';
+                errorMessage += '💡 **Alternative:** Use direct YouTube URL:\n';
+                errorMessage += '`!download https://www.youtube.com/watch?v=VIDEO_ID`';
             } else if (err.message.includes('network') || err.message.includes('connection')) {
                 errorMessage += '\n\n🌐 **Solution:** Check your internet connection and try again.';
             } else {
-                errorMessage += '\n\n💡 **Try:**\n• Check your internet connection\n• Try a different song\n• Make sure the song is available on YouTube';
+                errorMessage += '\n\n💡 **Try:**\n• Check your internet connection\n• Try a different song\n• Make sure the song is available on YouTube\n• Use `!download <youtube_url>` for direct downloads';
             }
             
             return errorMessage;
