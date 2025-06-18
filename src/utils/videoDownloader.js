@@ -49,7 +49,10 @@ class VideoDownloader {
                     '-o', filePath
                 ];
                 if (fs.existsSync(cookiesPath)) {
+                    console.log('[yt-dlp] Using cookies.txt for YouTube authentication');
                     args.push('--cookies', cookiesPath);
+                } else {
+                    console.warn('[yt-dlp] WARNING: cookies.txt not found. Some YouTube downloads may fail due to CAPTCHA or login requirements.');
                 }
                 args.push(url);
                 const ytdlp = spawn('python', args);

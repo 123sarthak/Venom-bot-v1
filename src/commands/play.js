@@ -20,7 +20,10 @@ const downloadAudioFromYouTube = (url, outputFilename, onSuccess, onError) => {
     '-o', outputPath
   ];
   if (fs.existsSync(cookiesPath)) {
+    console.log('[yt-dlp] Using cookies.txt for YouTube authentication');
     args.push('--cookies', cookiesPath);
+  } else {
+    console.warn('[yt-dlp] WARNING: cookies.txt not found. Some YouTube downloads may fail due to CAPTCHA or login requirements.');
   }
   args.push(url);
 
