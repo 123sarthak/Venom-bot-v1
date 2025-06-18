@@ -1,12 +1,10 @@
 const ytSearch = require('yt-search');
-const ytdl = require('ytdl-core');
 const ffmpeg = require('fluent-ffmpeg');
 const ffmpegPath = require('ffmpeg-static');
 const fs = require('fs');
 const path = require('path');
 const { spawn } = require('child_process');
 
-const YTDLP_PATH = 'C:/Users/sarth/AppData/Roaming/Python/Python313/Scripts/yt-dlp.exe';
 const MAX_MESSENGER_FILE_SIZE = 25 * 1024 * 1024;
 
 class PlayCommand {
@@ -42,7 +40,7 @@ class PlayCommand {
 
         await fb.sendMessage(threadID, `🎵 Found: *${video.title}*\n⏳ Downloading and converting to MP3...`);
 
-        // 2. Download audio using ytdl-core, fallback to yt-dlp if needed
+        // 2. Download audio using yt-dlp
         const fileName = `song_${Date.now()}.mp3`;
         const filePath = path.join(__dirname, '../../downloads', fileName);
         
@@ -53,73 +51,46 @@ class PlayCommand {
                 fs.mkdirSync(downloadsDir, { recursive: true });
             }
 
-            // Set ffmpeg path
-            ffmpeg.setFfmpegPath(ffmpegPath);
-
-            // Try ytdl-core first
+            // Download using yt-dlp
             await new Promise((resolve, reject) => {
-                const audioStream = ytdl(video.url, {
-                    quality: 'highestaudio',
-                    filter: 'audioonly'
-                });
+                const ytDlpProcess = spawn(
+                    'python',
+                    [
+                        '-m', 'yt_dlp',
+                        video.url,
+                        '-f', 'bestaudio',
+                        '--extract-audio',
+                        '--audio-format', 'mp3',
+                        '--audio-quality', '0',
+                        '-o', filePath
+                    ]
+                );
 
-                ffmpeg(audioStream)
-                    .audioBitrate(128)
-                    .audioChannels(2)
-                    .audioFrequency(44100)
-                    .format('mp3')
-                    .on('start', (commandLine) => {
-                        console.log('FFmpeg started:', commandLine);
-                    })
-                    .on('progress', (progress) => {
-                        console.log('FFmpeg progress:', progress.percent + '%');
-                    })
-                    .on('error', (err) => {
-                        console.error('FFmpeg error:', err);
-                        reject(err);
-                    })
-                    .on('end', () => {
-                        console.log('FFmpeg conversion completed');
+                ytDlpProcess.stdout.on('data', (data) => {
+                    console.log(`[yt-dlp] ${data}`.trim());
+                });
+                
+                ytDlpProcess.stderr.on('data', (data) => {
+                    console.error(`[yt-dlp] ${data}`.trim());
+                });
+                
+                ytDlpProcess.on('close', (code) => {
+                    if (code === 0 && fs.existsSync(filePath) && fs.statSync(filePath).size > 0) {
+                        console.log('✅ yt-dlp download completed successfully');
                         resolve();
-                    })
-                    .save(filePath);
-            });
-        } catch (err) {
-            // If ytdl-core fails, fallback to yt-dlp
-            console.error('ytdl-core failed, trying yt-dlp fallback:', err.message);
-            await fb.sendMessage(threadID, '⚠️ ytdl-core failed, trying yt-dlp fallback...');
-            try {
-                await new Promise((resolve, reject) => {
-                    const ytDlpProcess = spawn(
-                        YTDLP_PATH,
-                        [
-                            video.url,
-                            '-f', 'bestaudio',
-                            '--extract-audio',
-                            '--audio-format', 'mp3',
-                            '--audio-quality', '0',
-                            '-o', filePath
-                        ]
-                    );
-
-                    ytDlpProcess.stdout.on('data', (data) => {
-                        console.log(`[yt-dlp] ${data}`.trim());
-                    });
-                    ytDlpProcess.stderr.on('data', (data) => {
-                        console.error(`[yt-dlp] ${data}`.trim());
-                    });
-                    ytDlpProcess.on('close', (code) => {
-                        if (code === 0 && fs.existsSync(filePath) && fs.statSync(filePath).size > 0) {
-                            resolve();
-                        } else {
-                            reject(new Error('yt-dlp failed to download audio.'));
-                        }
-                    });
+                    } else {
+                        reject(new Error(`yt-dlp failed with exit code: ${code}`));
+                    }
                 });
-            } catch (ytDlpErr) {
-                console.error('yt-dlp fallback failed:', ytDlpErr);
-                return `❌ Failed to download or convert audio with both ytdl-core and yt-dlp.\n\n**Error:** ${ytDlpErr.message}`;
-            }
+
+                ytDlpProcess.on('error', (err) => {
+                    reject(new Error(`yt-dlp process error: ${err.message}`));
+                });
+            });
+
+        } catch (err) {
+            console.error('yt-dlp download failed:', err);
+            return `❌ Failed to download audio with yt-dlp.\n\n**Error:** ${err.message}`;
         }
 
         // 3. Check if file was created successfully

@@ -1,29 +1,31 @@
 // Simple test for play command
-const PlayCommand = require('./src/commands/play.js');
+const PlayCommand = require('./src/commands/play');
 
-async function testPlayCommand() {
-    console.log('Testing play command...');
-    
+console.log('Testing play command...');
+
+// Test the play command
+const playCommand = new PlayCommand();
+console.log('✅ Play command loaded successfully');
+
+// Test YouTube search functionality
+const ytSearch = require('yt-search');
+
+async function testYouTubeSearch() {
     try {
-        const playCommand = new PlayCommand();
-        console.log('✅ Play command loaded successfully');
-        
-        // Test with mock context
-        const mockContext = {
-            threadID: 'test123',
-            fb: {
-                sendMessage: async (threadID, message) => {
-                    console.log(`📤 Mock message to ${threadID}:`, message);
-                }
-            }
-        };
-        
-        console.log('✅ Mock context created');
-        console.log('🎵 Play command is ready to use!');
-        
+        console.log('🔍 Testing YouTube search...');
+        const result = await ytSearch('test song');
+        if (result.videos && result.videos.length > 0) {
+            console.log('✅ YouTube search working');
+            console.log(`Found: ${result.videos[0].title}`);
+        } else {
+            console.log('❌ No videos found in search');
+        }
     } catch (error) {
-        console.error('❌ Error testing play command:', error);
+        console.error('❌ YouTube search failed:', error.message);
     }
 }
 
-testPlayCommand(); 
+testYouTubeSearch().then(() => {
+    console.log('🎵 Play command is ready to use!');
+    console.log('📝 The command now uses yt-dlp only (no more ytdl-core fallback)');
+}); 
