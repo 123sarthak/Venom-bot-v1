@@ -42,12 +42,17 @@ class VideoDownloader {
         try {
             // Use yt-dlp to download the video
             return await new Promise((resolve, reject) => {
-                const ytdlp = spawn('python', [
+                const cookiesPath = path.resolve(__dirname, '../../cookies.txt');
+                const args = [
                     '-m', 'yt_dlp',
                     '-f', 'best',
-                    '-o', filePath,
-                    url
-                ]);
+                    '-o', filePath
+                ];
+                if (fs.existsSync(cookiesPath)) {
+                    args.push('--cookies', cookiesPath);
+                }
+                args.push(url);
+                const ytdlp = spawn('python', args);
 
                 ytdlp.stdout.on('data', (data) => {
                     console.log(`[yt-dlp] ${data}`);

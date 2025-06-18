@@ -9,15 +9,22 @@ const MAX_MESSENGER_FILE_SIZE = 25 * 1024 * 1024;
 
 const downloadAudioFromYouTube = (url, outputFilename, onSuccess, onError) => {
   const outputPath = path.resolve(__dirname, '../downloads', outputFilename + '.mp3');
+  const cookiesPath = path.resolve(__dirname, '../../cookies.txt');
 
-  const ytdlp = spawn('python', [
+  // Build yt-dlp args
+  const args = [
     '-m', 'yt_dlp',
     '--extract-audio',
     '--audio-format', 'mp3',
-    '--ffmpeg-location', 'ffmpeg', // optional, if already in PATH
-    '-o', outputPath,
-    url
-  ]);
+    '--ffmpeg-location', 'ffmpeg',
+    '-o', outputPath
+  ];
+  if (fs.existsSync(cookiesPath)) {
+    args.push('--cookies', cookiesPath);
+  }
+  args.push(url);
+
+  const ytdlp = spawn('python', args);
 
   ytdlp.stdout.on('data', (data) => {
     console.log(`[yt-dlp] ${data}`);
