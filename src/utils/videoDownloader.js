@@ -1,4 +1,4 @@
-const play = require('play-dl');
+const ytdl = require('ytdl-core');
 const axios = require('axios');
 const fs = require('fs-extra');
 const path = require('path');
@@ -38,13 +38,16 @@ class VideoDownloader {
 
     async downloadYouTube(url, filePath, fileName) {
         try {
-            // Use play-dl to get video stream
-            const stream = await play.stream(url, { quality: 137 }); // 137 = 1080p
+            // Use ytdl-core to get video stream
+            const videoStream = ytdl(url, {
+                quality: 'highest',
+                filter: 'audioandvideo'
+            });
             
             const writeStream = fs.createWriteStream(filePath);
             
             return new Promise((resolve, reject) => {
-                stream.stream.pipe(writeStream);
+                videoStream.pipe(writeStream);
 
                 writeStream.on('finish', () => {
                     resolve({
@@ -60,7 +63,7 @@ class VideoDownloader {
                     reject(new Error(`Failed to write YouTube video: ${error.message}`));
                 });
 
-                stream.stream.on('error', (error) => {
+                videoStream.on('error', (error) => {
                     reject(new Error(`Failed to download YouTube video: ${error.message}`));
                 });
             });
