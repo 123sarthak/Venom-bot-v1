@@ -42,7 +42,8 @@ class VideoDownloader {
         try {
             // Use yt-dlp to download the video
             return await new Promise((resolve, reject) => {
-                const ytdlp = spawn('yt-dlp', [
+                const ytdlp = spawn('python', [
+                    '-m', 'yt_dlp',
                     '-f', 'best',
                     '-o', filePath,
                     url

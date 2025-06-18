@@ -10,7 +10,8 @@ const MAX_MESSENGER_FILE_SIZE = 25 * 1024 * 1024;
 const downloadAudioFromYouTube = (url, outputFilename, onSuccess, onError) => {
   const outputPath = path.resolve(__dirname, '../downloads', outputFilename + '.mp3');
 
-  const ytdlp = spawn('yt-dlp', [
+  const ytdlp = spawn('python', [
+    '-m', 'yt_dlp',
     '--extract-audio',
     '--audio-format', 'mp3',
     '--ffmpeg-location', 'ffmpeg', // optional, if already in PATH
